@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <data name="SearchChannelPlaceholder" xml:space="preserve">
+    <value>Search channel...</value>
+  </data>
+  <data name="WriteMessagePlaceholder" xml:space="preserve">
+    <value>Write a message...</value>
+  </data>
+  <data name="SendButtonText" xml:space="preserve">
+    <value>Send</value>
+  </data>
+  <data name="FriendsText" xml:space="preserve">
+    <value>Friends</value>
+  </data>
+  <data name="DirectMessagesText" xml:space="preserve">
+    <value>Direct Messages</value>
+  </data>
+  <data name="StatusOnline" xml:space="preserve">
+    <value>Online</value>
+  </data>
+  <data name="StatusIdle" xml:space="preserve">
+    <value>Idle</value>
+  </data>
+  <data name="StatusDnd" xml:space="preserve">
+    <value>Do Not Disturb</value>
+  </data>
+  <data name="StatusInvisible" xml:space="preserve">
+    <value>Invisible</value>
+  </data>
+</root>
