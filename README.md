@@ -75,6 +75,16 @@ cd DiscordNative
 
 ---
 
+## License
+
+This project is licensed under the **GNU General Public License v3.0 (GPL-3.0)**. See the [LICENSE](file:///c:/Users/djell/Downloads/DiscordNative/LICENSE) file for complete details.
+
+Under this strong copyleft license:
+- Any fork, derivative work, or redistribution **must remain completely free and open-source**.
+- It is legally strictly prohibited to take this code, make it proprietary, or re-publish it in closed-source format without giving full attribution and releasing the modified source code under the same GPL-3.0 license.
+
+---
+
 ## Disclaimer
 
 DiscordNative is an unofficial third-party client built for experimental and educational purposes. Using third-party clients may be against Discord's Terms of Service. Use at your own discretion.
