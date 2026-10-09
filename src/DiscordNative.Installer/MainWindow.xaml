@@ -13,8 +13,10 @@
         <!-- Titre & Logo -->
         <StackPanel Grid.Row="0" Spacing="8">
             <StackPanel Orientation="Horizontal" Spacing="14" VerticalAlignment="Center">
-                <Border Width="48" Height="48" Background="{ThemeResource SystemControlBackgroundAccentBrush}" CornerRadius="14">
-                    <FontIcon Glyph="&#xE8FA;" FontSize="22" Foreground="White" HorizontalAlignment="Center" VerticalAlignment="Center" />
+                <Border Width="48" Height="48" CornerRadius="12">
+                    <Border.Background>
+                        <ImageBrush ImageSource="AppIcon.png" Stretch="UniformToFill" />
+                    </Border.Background>
                 </Border>
                 <StackPanel VerticalAlignment="Center">
                     <TextBlock Text="Installation de DiscordNative" FontSize="22" FontWeight="Bold" />

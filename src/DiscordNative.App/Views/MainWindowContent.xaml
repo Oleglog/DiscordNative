@@ -17,16 +17,16 @@
 
             <Grid Grid.Row="0" x:Name="AppTitleBar" Background="Transparent" />
 
-            <!-- Bannière de notification de mise à jour WinUI 3 InfoBar -->
+            <!-- Bannière de notification et mise à jour automatique WinUI 3 InfoBar -->
             <InfoBar Grid.Row="1" x:Name="UpdateInfoBar"
                      IsOpen="False"
                      Severity="Informational"
                      Title="Mise à jour disponible"
-                     Message="Une nouvelle version de DiscordNative est prête !"
+                     Message="Une nouvelle version de DiscordNative est disponible."
                      CornerRadius="8"
                      Margin="12,0,12,8">
                 <InfoBar.ActionButton>
-                    <Button Content="Télécharger" Click="OnDownloadUpdateClicked" Style="{StaticResource AccentButtonStyle}" />
+                    <Button x:Name="ApplyUpdateButton" Content="Mettre à jour maintenant" Click="OnApplyUpdateClicked" Style="{StaticResource AccentButtonStyle}" />
                 </InfoBar.ActionButton>
             </InfoBar>
 
@@ -45,9 +45,13 @@
                         <RowDefinition Height="Auto" />
                     </Grid.RowDefinitions>
 
-                    <Button Grid.Row="0" Margin="12,12,12,4" Width="48" Height="48" CornerRadius="16"
+                    <Button Grid.Row="0" Margin="12,12,12,4" Width="48" Height="48" CornerRadius="16" Padding="0"
                             Click="OnFriendsClicked" ToolTipService.ToolTip="Amis et messages privés">
-                        <FontIcon Glyph="&#xE8FA;" />
+                        <Border Width="48" Height="48" CornerRadius="16">
+                            <Border.Background>
+                                <ImageBrush ImageSource="ms-appx:///Assets/AppIcon.png" Stretch="UniformToFill" />
+                            </Border.Background>
+                        </Border>
                     </Button>
 
                     <ListView Grid.Row="1" x:Name="GuildList"

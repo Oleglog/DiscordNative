@@ -23,7 +23,7 @@ public sealed partial class MainWindowContent : UserControl
 
     public void RefreshBackground() => BackgroundHost.ApplyFromSettings();
 
-    private string? _updateUrl;
+    private UpdateInfo? _availableUpdate;
 
     public MainWindowContent()
     {
@@ -36,19 +36,25 @@ public sealed partial class MainWindowContent : UserControl
         var update = await UpdateService.CheckForUpdatesAsync();
         if (update is not null)
         {
-            _updateUrl = update.HtmlUrl;
+            _availableUpdate = update;
             UpdateInfoBar.Title = $"Mise à jour disponible ({update.TagName})";
-            UpdateInfoBar.Message = string.IsNullOrWhiteSpace(update.Name) ? "Une nouvelle version est disponible au téléchargement." : update.Name;
+            UpdateInfoBar.Message = string.IsNullOrWhiteSpace(update.Name) ? "Une nouvelle version de DiscordNative est prête à être installée." : update.Name;
             UpdateInfoBar.IsOpen = true;
         }
     }
 
-    private async void OnDownloadUpdateClicked(object sender, RoutedEventArgs e)
+    private async void OnApplyUpdateClicked(object sender, RoutedEventArgs e)
     {
-        if (!string.IsNullOrEmpty(_updateUrl))
+        if (_availableUpdate is null) return;
+        ApplyUpdateButton.IsEnabled = false;
+
+        await UpdateService.ApplyAutomaticUpdateAsync(_availableUpdate, status =>
         {
-            await Launcher.LaunchUriAsync(new Uri(_updateUrl));
-        }
+            Protocol.App.RunOnUiThread(() =>
+            {
+                UpdateInfoBar.Message = status;
+            });
+        });
     }
 
     private async void OnGuildSelected(object sender, SelectionChangedEventArgs e)

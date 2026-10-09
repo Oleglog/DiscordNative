@@ -12,6 +12,7 @@
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
     <WindowsPackageType>None</WindowsPackageType>
+    <ApplicationIcon>app.ico</ApplicationIcon>
     <EnableMsixTooling>false</EnableMsixTooling>
   </PropertyGroup>
 
@@ -22,6 +23,9 @@
 
   <ItemGroup>
     <Manifest Include="$(ApplicationManifest)" />
+    <Content Include="AppIcon.png">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
   </ItemGroup>
 
 </Project>
