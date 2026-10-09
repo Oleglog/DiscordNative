@@ -11,12 +11,26 @@
         <Grid Background="Transparent">
             <Grid.RowDefinitions>
                 <RowDefinition Height="32" />
+                <RowDefinition Height="Auto" />
                 <RowDefinition Height="*" />
             </Grid.RowDefinitions>
 
             <Grid Grid.Row="0" x:Name="AppTitleBar" Background="Transparent" />
 
-            <Grid Grid.Row="1">
+            <!-- Bannière de notification de mise à jour WinUI 3 InfoBar -->
+            <InfoBar Grid.Row="1" x:Name="UpdateInfoBar"
+                     IsOpen="False"
+                     Severity="Informational"
+                     Title="Mise à jour disponible"
+                     Message="Une nouvelle version de DiscordNative est prête !"
+                     CornerRadius="8"
+                     Margin="12,0,12,8">
+                <InfoBar.ActionButton>
+                    <Button Content="Télécharger" Click="OnDownloadUpdateClicked" Style="{StaticResource AccentButtonStyle}" />
+                </InfoBar.ActionButton>
+            </InfoBar>
+
+            <Grid Grid.Row="2">
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="72" />
                     <ColumnDefinition Width="240" />

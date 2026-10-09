@@ -1,3 +1,4 @@
+using DiscordNative.App.Services;
 using DiscordNative.App.ViewModels;
 using DiscordNative.Protocol.Models;
 using Microsoft.UI.Xaml;
@@ -22,9 +23,32 @@ public sealed partial class MainWindowContent : UserControl
 
     public void RefreshBackground() => BackgroundHost.ApplyFromSettings();
 
+    private string? _updateUrl;
+
     public MainWindowContent()
     {
         InitializeComponent();
+        Loaded += OnLoaded;
+    }
+
+    private async void OnLoaded(object sender, RoutedEventArgs e)
+    {
+        var update = await UpdateService.CheckForUpdatesAsync();
+        if (update is not null)
+        {
+            _updateUrl = update.HtmlUrl;
+            UpdateInfoBar.Title = $"Mise à jour disponible ({update.TagName})";
+            UpdateInfoBar.Message = string.IsNullOrWhiteSpace(update.Name) ? "Une nouvelle version est disponible au téléchargement." : update.Name;
+            UpdateInfoBar.IsOpen = true;
+        }
+    }
+
+    private async void OnDownloadUpdateClicked(object sender, RoutedEventArgs e)
+    {
+        if (!string.IsNullOrEmpty(_updateUrl))
+        {
+            await Launcher.LaunchUriAsync(new Uri(_updateUrl));
+        }
     }
 
     private async void OnGuildSelected(object sender, SelectionChangedEventArgs e)

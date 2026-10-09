@@ -22,3 +22,6 @@ $RECYCLE.BIN/
 Thumbs.db
 ehthumbs.db
 Desktop.ini
+
+## [Releases]
+dist/
