@@ -1,0 +1,71 @@
+<Window
+    x:Class="DiscordNative.App.Views.SettingsWindow"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+
+    <Grid Background="{ThemeResource LayerFillColorDefaultBrush}">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="32" />
+            <RowDefinition Height="*" />
+        </Grid.RowDefinitions>
+
+        <Grid Grid.Row="0" x:Name="AppTitleBar" Background="Transparent" />
+
+        <ScrollViewer Grid.Row="1" Padding="24">
+            <StackPanel Spacing="24" MaxWidth="640">
+
+                <TextBlock Text="Paramètres" FontSize="28" FontWeight="SemiBold" />
+
+                <!-- Apparence -->
+                <StackPanel Spacing="12">
+                    <TextBlock Text="Apparence" FontSize="18" FontWeight="SemiBold" />
+
+                    <ComboBox x:Name="ThemeCombo" Header="Thème"
+                              SelectionChanged="OnThemeChanged" HorizontalAlignment="Stretch">
+                        <ComboBoxItem Content="Système" Tag="Default" />
+                        <ComboBoxItem Content="Clair" Tag="Light" />
+                        <ComboBoxItem Content="Sombre" Tag="Dark" />
+                    </ComboBox>
+
+                    <ToggleSwitch x:Name="CompactModeToggle" Header="Mode compact"
+                                  Toggled="OnCompactModeToggled" />
+                </StackPanel>
+
+                <!-- Fond d'écran personnalisé, façon Files -->
+                <StackPanel Spacing="12">
+                    <TextBlock Text="Fond d'écran personnalisé" FontSize="18" FontWeight="SemiBold" />
+                    <TextBlock Text="Choisissez une image qui s'affichera derrière l'interface, comme dans Files."
+                               Opacity="0.7" TextWrapping="Wrap" />
+
+                    <Border Height="160" CornerRadius="8" Background="{ThemeResource ControlFillColorSecondaryBrush}"
+                            BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}" BorderThickness="1">
+                        <Image x:Name="BackgroundPreview" Stretch="UniformToFill" />
+                    </Border>
+
+                    <StackPanel Orientation="Horizontal" Spacing="8">
+                        <Button Content="Choisir une image..." Click="OnChooseBackgroundClicked" />
+                        <Button Content="Réinitialiser" Click="OnResetBackgroundClicked" />
+                    </StackPanel>
+
+                    <TextBlock Text="Opacité du voile" />
+                    <Slider x:Name="OpacitySlider" Minimum="0" Maximum="1" StepFrequency="0.05"
+                            ValueChanged="OnOpacityChanged" />
+
+                    <TextBlock Text="Flou" />
+                    <Slider x:Name="BlurSlider" Minimum="0" Maximum="40" StepFrequency="1"
+                            ValueChanged="OnBlurChanged" />
+                </StackPanel>
+
+                <!-- Compte -->
+                <StackPanel Spacing="12">
+                    <TextBlock Text="Compte" FontSize="18" FontWeight="SemiBold" />
+                    <Button Content="Se déconnecter" Background="{ThemeResource SystemFillColorCriticalBrush}"
+                            Click="OnLogoutClicked" />
+                </StackPanel>
+
+                <TextBlock Text="Client non officiel — non affilié à Discord Inc." Opacity="0.5" FontSize="11" />
+
+            </StackPanel>
+        </ScrollViewer>
+    </Grid>
+</Window>

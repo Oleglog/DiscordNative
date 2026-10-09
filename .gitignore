@@ -1,0 +1,24 @@
+## [Core]
+bin/
+obj/
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+.vs/
+.vscode/
+.idea/
+
+## [Build & logs]
+*.log
+*.tmp
+screen.png
+screen_max.png
+screenshot.ps1
+focus_and_screenshot.ps1
+
+## [OS Generated]
+$RECYCLE.BIN/
+Thumbs.db
+ehthumbs.db
+Desktop.ini

@@ -1,0 +1,112 @@
+﻿using DiscordNative.Protocol.Auth;
+using Microsoft.UI.Xaml;
+
+namespace DiscordNative.App.Views;
+
+public sealed partial class LoginWindow : Window
+{
+    private readonly DiscordAuthClient _authClient = new();
+    private string? _pendingMfaTicket;
+
+    public LoginWindow()
+    {
+        InitializeComponent();
+        Title = "DiscordNative — Connexion";
+        ExtendsContentIntoTitleBar = true;
+        SetTitleBar(AppTitleBar);
+    }
+
+    private async void OnLoginClicked(object sender, RoutedEventArgs e)
+    {
+        ErrorBar.IsOpen = false;
+        var email = EmailBox.Text.Trim();
+        var password = PasswordBox.Password;
+
+        if (string.IsNullOrWhiteSpace(email) || string.IsNullOrWhiteSpace(password))
+        {
+            ShowError("Merci de renseigner e-mail et mot de passe.");
+            return;
+        }
+
+        SetLoading(true);
+        try
+        {
+            var result = await _authClient.LoginAsync(email, password);
+            if (result.NeedsMfa)
+            {
+                _pendingMfaTicket = result.MfaTicket;
+                CredentialsPanel.Visibility = Visibility.Collapsed;
+                MfaPanel.Visibility = Visibility.Visible;
+            }
+            else
+            {
+                OnAuthenticated(result.Token!);
+            }
+        }
+        catch (DiscordNative.Protocol.Auth.DiscordAuthException ex)
+        {
+            ShowError(ex.Message);
+        }
+        catch (Exception ex)
+        {
+            ShowError($"Erreur réseau : {ex.Message}");
+        }
+        finally
+        {
+            SetLoading(false);
+        }
+    }
+
+    private async void OnMfaClicked(object sender, RoutedEventArgs e)
+    {
+        ErrorBar.IsOpen = false;
+        var code = MfaCodeBox.Text.Trim();
+
+        if (code.Length != 6 || _pendingMfaTicket is null)
+        {
+            ShowError("Code à 6 chiffres requis.");
+            return;
+        }
+
+        SetLoading(true);
+        try
+        {
+            var result = await _authClient.SubmitTotpAsync(_pendingMfaTicket, code);
+            OnAuthenticated(result.Token!);
+        }
+        catch (DiscordNative.Protocol.Auth.DiscordAuthException ex)
+        {
+            ShowError(ex.Message);
+        }
+        finally
+        {
+            SetLoading(false);
+        }
+    }
+
+    private void OnAuthenticated(string token)
+    {
+        App.Settings.SaveToken(token);
+
+        var mainWindow = new MainWindow(token);
+        mainWindow.Activate();
+        App.MainAppWindow = mainWindow;
+
+        _authClient.Dispose();
+        Close();
+    }
+
+    private void ShowError(string message)
+    {
+        ErrorBar.Title = "Erreur";
+        ErrorBar.Message = message;
+        ErrorBar.IsOpen = true;
+    }
+
+    private void SetLoading(bool loading)
+    {
+        LoadingRing.IsActive = loading;
+        LoginButton.IsEnabled = !loading;
+        MfaButton.IsEnabled = !loading;
+    }
+}
