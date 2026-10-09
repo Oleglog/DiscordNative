@@ -41,4 +41,14 @@ public sealed class DiscordUser
     public bool HasBanner => Banner is not null;
 
     public string UserTag => Discriminator == "0" ? $"@{Username}" : $"{Username}#{Discriminator}";
+
+    public string Status { get; set; } = "online";
+
+    public string StatusColor => Status switch
+    {
+        "online" => "#23A55A",
+        "idle" => "#F0B232",
+        "dnd" => "#F23F43",
+        _ => "#80848E"
+    };
 }

@@ -198,14 +198,14 @@ public sealed class DiscordGatewayClient : IAsyncDisposable
         return await JsonSerializer.DeserializeAsync<GatewayPayload>(ms, JsonOptions, ct);
     }
 
-    public Task SendVoiceStateUpdateAsync(string guildId, string? channelId, CancellationToken ct = default)
+    public Task SendVoiceStateUpdateAsync(string guildId, string? channelId, bool mute = false, bool deaf = false, CancellationToken ct = default)
     {
         var payload = new
         {
             guild_id = guildId,
             channel_id = channelId,
-            self_mute = false,
-            self_deaf = false
+            self_mute = mute,
+            self_deaf = deaf
         };
         return SendAsync(4, payload, ct);
     }

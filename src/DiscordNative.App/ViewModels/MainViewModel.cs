@@ -36,7 +36,29 @@ public sealed partial class MainViewModel : ObservableObject
     [ObservableProperty]
     private bool isVoiceChannelSelected;
 
+    [ObservableProperty]
+    private bool isMuted;
+
+    [ObservableProperty]
+    private bool isDeafened;
+
+    [ObservableProperty]
+    private string currentStatus = "online";
+
+    [ObservableProperty]
+    private string searchFilterText = string.Empty;
+
+    public ObservableCollection<DiscordChannel> FilteredChannels { get; } = new();
+
     public ObservableCollection<DiscordUser> VoiceParticipants { get; } = new();
+
+    public string StatusDotColor => CurrentStatus switch
+    {
+        "online" => "#23A55A",
+        "idle" => "#F0B232",
+        "dnd" => "#F23F43",
+        _ => "#80848E"
+    };
 
     public Microsoft.UI.Xaml.Visibility VoiceViewVisibility => IsVoiceChannelSelected ? Microsoft.UI.Xaml.Visibility.Visible : Microsoft.UI.Xaml.Visibility.Collapsed;
     public Microsoft.UI.Xaml.Visibility TextViewVisibility => IsVoiceChannelSelected ? Microsoft.UI.Xaml.Visibility.Collapsed : Microsoft.UI.Xaml.Visibility.Visible;
@@ -106,6 +128,9 @@ public sealed partial class MainViewModel : ObservableObject
                     $"[{DateTime.Now}] GetGuildChannelsAsync failed: {ex}\n\n");
             }
         }
+
+        FilteredChannels.Clear();
+        foreach (var ch in Channels) FilteredChannels.Add(ch);
     }
 
     public async Task SelectChannelAsync(DiscordChannel channel)
@@ -298,6 +323,48 @@ public sealed partial class MainViewModel : ObservableObject
             IsVoiceChannelSelected = false;
             OnPropertyChanged(nameof(VoiceViewVisibility));
             OnPropertyChanged(nameof(TextViewVisibility));
+        }
+    }
+
+    public void ToggleMute()
+    {
+        IsMuted = !IsMuted;
+        if (_selectedChannel?.GuildId != null && IsVoiceConnected)
+        {
+            _ = _client.JoinVoiceChannelAsync(_selectedChannel.GuildId, _selectedChannel.Id, IsMuted, IsDeafened);
+        }
+    }
+
+    public void ToggleDeafen()
+    {
+        IsDeafened = !IsDeafened;
+        if (IsDeafened) IsMuted = true;
+        if (_selectedChannel?.GuildId != null && IsVoiceConnected)
+        {
+            _ = _client.JoinVoiceChannelAsync(_selectedChannel.GuildId, _selectedChannel.Id, IsMuted, IsDeafened);
+        }
+    }
+
+    public void SetStatus(string status)
+    {
+        CurrentStatus = status;
+        OnPropertyChanged(nameof(StatusDotColor));
+    }
+
+    public void ApplySearchFilter(string query)
+    {
+        SearchFilterText = query;
+        FilteredChannels.Clear();
+        if (string.IsNullOrWhiteSpace(query))
+        {
+            foreach (var ch in Channels) FilteredChannels.Add(ch);
+            return;
+        }
+
+        var lower = query.ToLowerInvariant();
+        foreach (var ch in Channels.Where(c => c.DisplayName.ToLowerInvariant().Contains(lower)))
+        {
+            FilteredChannels.Add(ch);
         }
     }
 }

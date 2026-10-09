@@ -67,17 +67,30 @@
                 <!-- 1. Salons & DM -->
                 <Grid Grid.Column="1" Background="Transparent">
                     <Grid.RowDefinitions>
-                        <RowDefinition Height="48" />
+                        <RowDefinition Height="Auto" />
                         <RowDefinition Height="*" />
                         <RowDefinition Height="Auto" />
                     </Grid.RowDefinitions>
 
-                    <TextBlock Grid.Row="0" Text="{x:Bind ViewModel.SelectedGuildName, Mode=OneWay}"
-                               FontWeight="SemiBold" VerticalAlignment="Center" Margin="16,0" />
+                    <!-- Haut gauche : Titre de serveur & Recherche de salons (Quick Switcher) -->
+                    <StackPanel Grid.Row="0" Margin="12,10,12,10" Spacing="8">
+                        <TextBlock Text="{x:Bind ViewModel.SelectedGuildName, Mode=OneWay}"
+                                   FontWeight="SemiBold" FontSize="15" TextTrimming="CharacterEllipsis" />
+                        <TextBox x:Name="ChannelSearchBox"
+                                 PlaceholderText="Rechercher un salon..."
+                                 CornerRadius="8"
+                                 FontSize="12"
+                                 Height="32"
+                                 Padding="10,4"
+                                 BorderThickness="0"
+                                 Background="{ThemeResource ControlFillColorDefaultBrush}"
+                                 TextChanged="OnChannelSearchChanged"
+                                 Visibility="{x:Bind ViewModel.ShowingGuildChannels, Mode=OneWay}" />
+                    </StackPanel>
 
                     <Grid Grid.Row="1">
                         <ListView x:Name="ChannelList"
-                                  ItemsSource="{x:Bind ViewModel.Channels, Mode=OneWay}"
+                                  ItemsSource="{x:Bind ViewModel.FilteredChannels, Mode=OneWay}"
                                   SelectionMode="Single"
                                   SelectionChanged="OnChannelSelected"
                                   Visibility="{x:Bind ViewModel.ShowingGuildChannels, Mode=OneWay}"
@@ -145,6 +158,7 @@
 
                     <!-- Bas gauche : Panneau Vocal & Profil -->
                     <StackPanel Grid.Row="2" Background="Transparent">
+                        <!-- Statut de connexion vocal actif -->
                         <Grid Padding="12,8" Background="#1B7A43" CornerRadius="12" Margin="8,0,8,6"
                               Visibility="{x:Bind ViewModel.IsVoiceConnected, Mode=OneWay, Converter={StaticResource BoolToVisibilityConverter}}">
                             <Grid.ColumnDefinitions>
@@ -163,18 +177,71 @@
                             </Button>
                         </Grid>
 
-                        <Grid Height="52" Padding="8">
-                            <StackPanel Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
-                                <Grid Width="32" Height="32">
-                                    <Ellipse Fill="{ThemeResource ControlFillColorSecondaryBrush}" />
-                                    <Ellipse>
-                                        <Ellipse.Fill>
-                                            <ImageBrush ImageSource="{x:Bind ViewModel.CurrentUserAvatarUrl, Mode=OneWay, Converter={StaticResource StringToImageSourceConverter}}" Stretch="UniformToFill" />
-                                        </Ellipse.Fill>
-                                    </Ellipse>
-                                </Grid>
-                                <TextBlock Text="{x:Bind ViewModel.CurrentUserName, Mode=OneWay}"
-                                           VerticalAlignment="Center" FontWeight="SemiBold" FontSize="13" />
+                        <!-- Barre Profil Utilisateur & Contrôles Audio Mute/Deafen/Settings -->
+                        <Grid Height="56" Padding="8,4" Background="{ThemeResource CardBackgroundFillColorDefaultBrush}" Margin="8,0,8,8" CornerRadius="12">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="Auto" />
+                            </Grid.ColumnDefinitions>
+
+                            <!-- Profil & Statut Sélecteur -->
+                            <Button Grid.Column="0" Background="Transparent" BorderThickness="0" Padding="4" HorizontalAlignment="Stretch" HorizontalContentAlignment="Left" CornerRadius="8">
+                                <Button.Flyout>
+                                    <MenuFlyout>
+                                        <MenuFlyoutItem Text="En ligne" Click="OnStatusOnlineClicked">
+                                            <MenuFlyoutItem.Icon>
+                                                <FontIcon Glyph="&#xF136;" Foreground="#23A55A" />
+                                            </MenuFlyoutItem.Icon>
+                                        </MenuFlyoutItem>
+                                        <MenuFlyoutItem Text="Inactif" Click="OnStatusIdleClicked">
+                                            <MenuFlyoutItem.Icon>
+                                                <FontIcon Glyph="&#xF136;" Foreground="#F0B232" />
+                                            </MenuFlyoutItem.Icon>
+                                        </MenuFlyoutItem>
+                                        <MenuFlyoutItem Text="Ne pas déranger" Click="OnStatusDndClicked">
+                                            <MenuFlyoutItem.Icon>
+                                                <FontIcon Glyph="&#xF136;" Foreground="#F23F43" />
+                                            </MenuFlyoutItem.Icon>
+                                        </MenuFlyoutItem>
+                                        <MenuFlyoutItem Text="Invisible" Click="OnStatusInvisibleClicked">
+                                            <MenuFlyoutItem.Icon>
+                                                <FontIcon Glyph="&#xF136;" Foreground="#80848E" />
+                                            </MenuFlyoutItem.Icon>
+                                        </MenuFlyoutItem>
+                                    </MenuFlyout>
+                                </Button.Flyout>
+                                <StackPanel Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
+                                    <Grid Width="34" Height="34">
+                                        <Ellipse Fill="{ThemeResource ControlFillColorSecondaryBrush}" />
+                                        <Ellipse>
+                                            <Ellipse.Fill>
+                                                <ImageBrush ImageSource="{x:Bind ViewModel.CurrentUserAvatarUrl, Mode=OneWay, Converter={StaticResource StringToImageSourceConverter}}" Stretch="UniformToFill" />
+                                            </Ellipse.Fill>
+                                        </Ellipse>
+                                        <!-- Pastille d'état Discord -->
+                                        <Ellipse Width="10" Height="10" Fill="{x:Bind ViewModel.StatusDotColor, Mode=OneWay, Converter={StaticResource StringToBrushConverter}}"
+                                                 Stroke="{ThemeResource ApplicationPageBackgroundThemeBrush}" StrokeThickness="2"
+                                                 HorizontalAlignment="Right" VerticalAlignment="Bottom" />
+                                    </Grid>
+                                    <StackPanel VerticalAlignment="Center">
+                                        <TextBlock Text="{x:Bind ViewModel.CurrentUserName, Mode=OneWay}"
+                                                   FontWeight="SemiBold" FontSize="13" TextTrimming="CharacterEllipsis" MaxWidth="90" />
+                                        <TextBlock Text="{x:Bind ViewModel.CurrentStatus, Mode=OneWay}"
+                                                   FontSize="11" Opacity="0.6" TextTrimming="CharacterEllipsis" />
+                                    </StackPanel>
+                                </StackPanel>
+                            </Button>
+
+                            <!-- Boutons Audio Mute / Deafen -->
+                            <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="2" VerticalAlignment="Center">
+                                <Button Width="32" Height="32" CornerRadius="16" Padding="0" Background="Transparent" BorderThickness="0"
+                                        Click="OnToggleMuteClicked" ToolTipService.ToolTip="Couper/Activer le micro">
+                                    <FontIcon Glyph="&#xE720;" FontSize="14" Opacity="{x:Bind ViewModel.IsMuted, Mode=OneWay, Converter={StaticResource BoolToVisibilityConverter}}" />
+                                </Button>
+                                <Button Width="32" Height="32" CornerRadius="16" Padding="0" Background="Transparent" BorderThickness="0"
+                                        Click="OnToggleDeafenClicked" ToolTipService.ToolTip="Mettre en sourdine">
+                                    <FontIcon Glyph="&#xE7F6;" FontSize="14" />
+                                </Button>
                             </StackPanel>
                         </Grid>
                     </StackPanel>
@@ -404,10 +471,12 @@
                     <Grid Grid.Row="2" Visibility="{x:Bind ViewModel.VoiceViewVisibility, Mode=OneWay}" Padding="16,0,16,16">
                         <Border Background="{ThemeResource LayerFillColorDefaultBrush}" CornerRadius="16" Padding="12,8" HorizontalAlignment="Center">
                             <StackPanel Orientation="Horizontal" Spacing="16">
-                                <Button Width="40" Height="40" CornerRadius="20" Background="{ThemeResource ControlFillColorDefaultBrush}" ToolTipService.ToolTip="Muet">
+                                <Button Width="40" Height="40" CornerRadius="20" Background="{ThemeResource ControlFillColorDefaultBrush}"
+                                        Click="OnToggleMuteClicked" ToolTipService.ToolTip="Muet">
                                     <FontIcon Glyph="&#xE720;" FontSize="16" />
                                 </Button>
-                                <Button Width="40" Height="40" CornerRadius="20" Background="{ThemeResource ControlFillColorDefaultBrush}" ToolTipService.ToolTip="Casque">
+                                <Button Width="40" Height="40" CornerRadius="20" Background="{ThemeResource ControlFillColorDefaultBrush}"
+                                        Click="OnToggleDeafenClicked" ToolTipService.ToolTip="Casque">
                                     <FontIcon Glyph="&#xE7F6;" FontSize="16" />
                                 </Button>
                                 <Button Width="48" Height="40" CornerRadius="20" Background="#E02424" Foreground="White" Click="OnDisconnectVoiceClicked" ToolTipService.ToolTip="Déconnexion">

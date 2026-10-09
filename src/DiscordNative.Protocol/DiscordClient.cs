@@ -181,9 +181,9 @@ public sealed class DiscordClient : IAsyncDisposable
         }
     }
 
-    public Task JoinVoiceChannelAsync(string guildId, string? channelId)
+    public Task JoinVoiceChannelAsync(string guildId, string? channelId, bool mute = false, bool deaf = false)
     {
-        if (_gateway is not null) return _gateway.SendVoiceStateUpdateAsync(guildId, channelId);
+        if (_gateway is not null) return _gateway.SendVoiceStateUpdateAsync(guildId, channelId, mute, deaf);
         return Task.CompletedTask;
     }
 

@@ -95,5 +95,28 @@ public sealed partial class MainWindowContent : UserControl
     {
         ViewModel.DisconnectVoice();
     }
+
+    private void OnToggleMuteClicked(object sender, RoutedEventArgs e)
+    {
+        ViewModel.ToggleMute();
+    }
+
+    private void OnToggleDeafenClicked(object sender, RoutedEventArgs e)
+    {
+        ViewModel.ToggleDeafen();
+    }
+
+    private void OnChannelSearchChanged(object sender, TextChangedEventArgs e)
+    {
+        if (sender is TextBox tb)
+        {
+            ViewModel.ApplySearchFilter(tb.Text);
+        }
+    }
+
+    private void OnStatusOnlineClicked(object sender, RoutedEventArgs e) => ViewModel.SetStatus("online");
+    private void OnStatusIdleClicked(object sender, RoutedEventArgs e) => ViewModel.SetStatus("idle");
+    private void OnStatusDndClicked(object sender, RoutedEventArgs e) => ViewModel.SetStatus("dnd");
+    private void OnStatusInvisibleClicked(object sender, RoutedEventArgs e) => ViewModel.SetStatus("invisible");
 }
 
