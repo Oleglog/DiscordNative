@@ -31,6 +31,18 @@ DiscordNative.sln
 
 ---
 
+## Installation & Portable Executable
+
+### Portable Release (Recommended)
+You can download the pre-compiled standalone portable package directly from the [Releases](https://github.com/djell1l/DiscordNative/releases) page:
+- Extract `DiscordNative-v0.2.0-win-x64-portable.zip`.
+- Run `DiscordNative.App.exe` directly (no installer required).
+
+### Automatic Updates
+DiscordNative includes an integrated WinUI 3 `InfoBar` notification system that queries GitHub Releases and alerts you when a new update is ready to download.
+
+---
+
 ## Building from Source
 
 ### Prerequisites
