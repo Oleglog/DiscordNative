@@ -2,14 +2,14 @@
 
 A fast, lightweight, and fully native Discord desktop client engineered for **Windows 11 & Windows 10** using **C# (.NET 8)**, **WinUI 3**, and the **Windows App SDK** — with zero Electron, CEF, or WebView wrappers.
 
-![DiscordNative Showcase](docs/assets/banner1.jpg)
+![DiscordNative Showcase](docs/assets/banner1.gif)
 
 ---
 
 ## Highlights
 
 <!-- demo: preview and animated showcase -->
-![Interface Demo](docs/assets/banner2.jpg)
+![Interface Demo](docs/assets/banner2.gif)
 
 - **Fluent Design & Personalization**: Deep integration with Windows 11 design standards, including Mica / Acrylic materials (`SystemBackdrop`), dark and light mode synchronization, rounded geometries, and customizable wallpaper background with adjustable blur and opacity inspired by [Files](https://github.com/files-community/Files).
 - **Lightweight Architecture**: Instant startup and reduced memory usage compared to Chromium-based clients.
@@ -31,15 +31,19 @@ DiscordNative.sln
 
 ---
 
-## Installation & Portable Executable
+## Installation & Distribution
 
-### Portable Release (Recommended)
-You can download the pre-compiled standalone portable package directly from the [Releases](https://github.com/djell1l/DiscordNative/releases) page:
-- Extract `DiscordNative-v0.2.0-win-x64-portable.zip`.
-- Run `DiscordNative.App.exe` directly (no installer required).
+### 1. WinUI 3 Installer (`DiscordNative-Setup-v0.2.0-win-x64.zip`)
+- Download and extract the installer bundle from [Releases](https://github.com/djell1l/DiscordNative/releases).
+- Launch `DiscordNative.Installer.exe` — a modern Windows 11 setup wizard written in C# and WinUI 3.
+- Custom installation path, automatic Desktop and Start Menu shortcut creation.
 
-### Automatic Updates
-DiscordNative includes an integrated WinUI 3 `InfoBar` notification system that queries GitHub Releases and alerts you when a new update is ready to download.
+### 2. Standalone Portable Package (`DiscordNative-v0.2.0-win-x64-portable.zip`)
+- Extract anywhere.
+- Run `DiscordNative.App.exe` directly without setup.
+
+### 3. Automatic Updates
+DiscordNative includes an integrated WinUI 3 `InfoBar` notification banner that checks GitHub Releases on startup and allows you to download new updates in one click.
 
 ---
 

@@ -233,7 +233,7 @@
                                             </Ellipse.Fill>
                                         </Ellipse>
                                         <!-- Pastille d'état Discord -->
-                                        <Ellipse Width="10" Height="10" Fill="{x:Bind ViewModel.StatusDotColor, Mode=OneWay, Converter={StaticResource StringToBrushConverter}}"
+                                        <Ellipse Width="10" Height="10" Fill="{x:Bind ViewModel.StatusDotBrush, Mode=OneWay}"
                                                  Stroke="{ThemeResource ApplicationPageBackgroundThemeBrush}" StrokeThickness="2"
                                                  HorizontalAlignment="Right" VerticalAlignment="Bottom" />
                                     </Grid>
@@ -250,11 +250,11 @@
                             <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="2" VerticalAlignment="Center">
                                 <Button Width="32" Height="32" CornerRadius="16" Padding="0" Background="Transparent" BorderThickness="0"
                                         Click="OnToggleMuteClicked" ToolTipService.ToolTip="Couper/Activer le micro">
-                                    <FontIcon Glyph="&#xE720;" FontSize="14" Opacity="{x:Bind ViewModel.IsMuted, Mode=OneWay, Converter={StaticResource BoolToVisibilityConverter}}" />
+                                    <FontIcon Glyph="&#xE720;" FontSize="14" Opacity="{x:Bind ViewModel.MuteOpacity, Mode=OneWay}" />
                                 </Button>
                                 <Button Width="32" Height="32" CornerRadius="16" Padding="0" Background="Transparent" BorderThickness="0"
                                         Click="OnToggleDeafenClicked" ToolTipService.ToolTip="Mettre en sourdine">
-                                    <FontIcon Glyph="&#xE7F6;" FontSize="14" />
+                                    <FontIcon Glyph="&#xE7F6;" FontSize="14" Opacity="{x:Bind ViewModel.DeafenOpacity, Mode=OneWay}" />
                                 </Button>
                             </StackPanel>
                         </Grid>

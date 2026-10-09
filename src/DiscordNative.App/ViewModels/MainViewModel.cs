@@ -52,13 +52,16 @@ public sealed partial class MainViewModel : ObservableObject
 
     public ObservableCollection<DiscordUser> VoiceParticipants { get; } = new();
 
-    public string StatusDotColor => CurrentStatus switch
+    public Microsoft.UI.Xaml.Media.SolidColorBrush StatusDotBrush => new(CurrentStatus switch
     {
-        "online" => "#23A55A",
-        "idle" => "#F0B232",
-        "dnd" => "#F23F43",
-        _ => "#80848E"
-    };
+        "online" => Windows.UI.Color.FromArgb(255, 0x23, 0xA5, 0x5A),
+        "idle" => Windows.UI.Color.FromArgb(255, 0xF0, 0xB2, 0x32),
+        "dnd" => Windows.UI.Color.FromArgb(255, 0xF2, 0x3F, 0x43),
+        _ => Windows.UI.Color.FromArgb(255, 0x80, 0x84, 0x8E)
+    });
+
+    public double MuteOpacity => IsMuted ? 0.4 : 1.0;
+    public double DeafenOpacity => IsDeafened ? 0.4 : 1.0;
 
     public Microsoft.UI.Xaml.Visibility VoiceViewVisibility => IsVoiceChannelSelected ? Microsoft.UI.Xaml.Visibility.Visible : Microsoft.UI.Xaml.Visibility.Collapsed;
     public Microsoft.UI.Xaml.Visibility TextViewVisibility => IsVoiceChannelSelected ? Microsoft.UI.Xaml.Visibility.Collapsed : Microsoft.UI.Xaml.Visibility.Visible;
@@ -329,6 +332,7 @@ public sealed partial class MainViewModel : ObservableObject
     public void ToggleMute()
     {
         IsMuted = !IsMuted;
+        OnPropertyChanged(nameof(MuteOpacity));
         if (_selectedChannel?.GuildId != null && IsVoiceConnected)
         {
             _ = _client.JoinVoiceChannelAsync(_selectedChannel.GuildId, _selectedChannel.Id, IsMuted, IsDeafened);
@@ -339,6 +343,8 @@ public sealed partial class MainViewModel : ObservableObject
     {
         IsDeafened = !IsDeafened;
         if (IsDeafened) IsMuted = true;
+        OnPropertyChanged(nameof(DeafenOpacity));
+        OnPropertyChanged(nameof(MuteOpacity));
         if (_selectedChannel?.GuildId != null && IsVoiceConnected)
         {
             _ = _client.JoinVoiceChannelAsync(_selectedChannel.GuildId, _selectedChannel.Id, IsMuted, IsDeafened);
@@ -348,7 +354,7 @@ public sealed partial class MainViewModel : ObservableObject
     public void SetStatus(string status)
     {
         CurrentStatus = status;
-        OnPropertyChanged(nameof(StatusDotColor));
+        OnPropertyChanged(nameof(StatusDotBrush));
     }
 
     public void ApplySearchFilter(string query)

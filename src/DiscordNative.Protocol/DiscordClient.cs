@@ -73,9 +73,18 @@ public sealed class DiscordClient : IAsyncDisposable
             {
                 App.RunOnUiThread(() =>
                 {
-                    if (Guilds.Count == 0)
+                    foreach (var g in guilds.OrderBy(g => g.Name))
                     {
-                        foreach (var g in guilds.OrderBy(g => g.Name)) Guilds.Add(g);
+                        var existing = Guilds.FirstOrDefault(item => item.Id == g.Id);
+                        if (existing != null)
+                        {
+                            var idx = Guilds.IndexOf(existing);
+                            Guilds[idx] = g;
+                        }
+                        else
+                        {
+                            Guilds.Add(g);
+                        }
                     }
                 });
             }
@@ -144,25 +153,41 @@ public sealed class DiscordClient : IAsyncDisposable
     {
         if (data.TryGetProperty("guilds", out var guildsEl) && guildsEl.ValueKind == JsonValueKind.Array)
         {
-            var guilds = new List<DiscordGuild>();
+            var validGuilds = new List<DiscordGuild>();
             foreach (var gEl in guildsEl.EnumerateArray())
             {
                 var g = gEl.Deserialize<DiscordGuild>(JsonOptions);
                 if (g is null) continue;
-                // Format "client state v2" : nom/icône sous "properties".
                 if (gEl.TryGetProperty("properties", out var props) && props.ValueKind == JsonValueKind.Object)
                 {
                     if (string.IsNullOrEmpty(g.Name) && props.TryGetProperty("name", out var n)) g.Name = n.GetString() ?? "";
                     if (g.Icon is null && props.TryGetProperty("icon", out var i) && i.ValueKind == JsonValueKind.String) g.Icon = i.GetString();
                 }
-                if (gEl.TryGetProperty("unavailable", out var u) && u.ValueKind == JsonValueKind.True && string.IsNullOrEmpty(g.Name)) continue;
-                guilds.Add(g);
+                if (!string.IsNullOrEmpty(g.Name))
+                {
+                    validGuilds.Add(g);
+                }
             }
-            App.RunOnUiThread(() =>
+
+            if (validGuilds.Count > 0)
             {
-                Guilds.Clear();
-                foreach (var g in guilds.OrderBy(g => g.Name)) Guilds.Add(g);
-            });
+                App.RunOnUiThread(() =>
+                {
+                    foreach (var g in validGuilds)
+                    {
+                        var existing = Guilds.FirstOrDefault(item => item.Id == g.Id);
+                        if (existing != null)
+                        {
+                            var idx = Guilds.IndexOf(existing);
+                            Guilds[idx] = g;
+                        }
+                        else
+                        {
+                            Guilds.Add(g);
+                        }
+                    }
+                });
+            }
         }
 
         if (data.TryGetProperty("private_channels", out var dmEl))
