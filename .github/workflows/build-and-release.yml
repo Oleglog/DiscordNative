@@ -61,30 +61,17 @@ jobs:
 
       - name: Create or Update GitHub Release
         if: startsWith(github.ref, 'refs/tags/') || github.event_name == 'workflow_dispatch'
-        shell: powershell
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          $ver = "$env:VERSION"
-          Write-Host "Creating release for $ver..."
-          
-          # Check if release already exists
-          $exists = gh release view $ver 2>$null
-          if ($LASTEXITCODE -eq 0) {
-            Write-Host "Release $ver already exists. Uploading assets..."
-            gh release upload $ver (Get-Item dist\*.zip).FullName --clobber
-          } else {
-            Write-Host "Creating new release $ver..."
-            gh release create $ver (Get-Item dist\*.zip).FullName `
-              --title "Diswin $ver" `
-              --notes @"
-          ## Diswin $ver Update
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ env.VERSION }}
+          name: Diswin ${{ env.VERSION }}
+          files: dist/*.zip
+          body: |
+            ## Diswin ${{ env.VERSION }} Update
 
-          ### Fixes & Improvements:
-          - **2FA TOTP Authentication Fix**: Added `login_instance_id` (Discord MFA v2 compatibility) preventing 'invalid code' rejections.
-          - **Anti-Bot & Super Properties**: Added missing Discord client headers (`X-Super-Properties`, `Origin`, `Referer`, locale) to avoid silent hCaptcha rejections.
-          - **Backup Codes Support**: Allowed 8-character backup codes and dynamic routing to `/auth/mfa/backup`.
-          - **Input Sanitization**: Automatically strip spaces and dashes from pasted 2FA codes.
-          - **Navigation Fix**: Added a 'Retour' (Back) button in MFA screen to prevent getting stuck with burned tickets.
-          "@
-          }
+            ### Fixes & Improvements:
+            - **2FA TOTP Authentication Fix**: Added `login_instance_id` (Discord MFA v2 compatibility) preventing 'invalid code' rejections.
+            - **Anti-Bot & Super Properties**: Added missing Discord client headers (`X-Super-Properties`, `Origin`, `Referer`, locale) to avoid silent hCaptcha rejections.
+            - **Backup Codes Support**: Allowed 8-character backup codes and dynamic routing to `/auth/mfa/backup`.
+            - **Input Sanitization**: Automatically strip spaces and dashes from pasted 2FA codes.
+            - **Navigation Fix**: Added a 'Retour' (Back) button in MFA screen to prevent getting stuck with burned tickets.
