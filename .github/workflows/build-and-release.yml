@@ -4,9 +4,9 @@ on:
   workflow_dispatch:
     inputs:
       version:
-        description: 'Release version tag (e.g. v0.2.3)'
+        description: 'Release version tag (e.g. v0.2.4)'
         required: false
-        default: 'v0.2.3'
+        default: 'v0.2.4'
   push:
     tags:
       - 'v*'
@@ -46,7 +46,7 @@ jobs:
             if ("${{ github.ref }}" -like "refs/tags/*") {
               $ver = "${{ github.ref_name }}"
             } else {
-              $ver = "v0.2.3"
+              $ver = "v0.2.4"
             }
           }
           Write-Host "Packaging version: $ver"
@@ -69,10 +69,10 @@ jobs:
           body: |
             ## Diswin ${{ env.VERSION }} Release
 
-            ### 🚀 What's New & Fixed:
+            ### 🚀 Hotfix & Improvements:
+            - **⚡ Fix ASCII Header Crash**: Fixed `Request headers must contain only ASCII characters` crash caused by Cyrillic Windows timezone names (e.g. `RTZ 3 (зима)`) in `X-Discord-Timezone`. Now safely converts to ASCII IANA identifier or defaults to UTC.
             - **🔑 Direct Token Login**: Added a dedicated "Jeton (Token)" login tab allowing direct authentication via Discord user token, completely bypassing MFA/Cloudflare/hCaptcha blocks.
             - **🛡️ 2FA Multi-Method Support**: Added detection and selection for Authenticator App (TOTP), SMS verification (with a direct "Envoyer un SMS" button), and Backup codes.
             - **🧹 Clean JSON Serialization**: Configured `JsonIgnoreCondition.WhenWritingNull` to strictly omit null fields in authentication payloads, matching official Discord web client expectations.
             - **🔄 Automatic Method Fallback**: If an 8-character code is submitted under TOTP, it automatically attempts backup code validation.
-            - **🌍 Localized Headers**: Added local system timezone support to `X-Discord-Timezone` header.
             - **📋 Input Truncation Removed**: Removed the 8-character limit on the 2FA text box to allow codes of varying lengths, spaces, and hyphens.

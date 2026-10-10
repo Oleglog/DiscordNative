@@ -30,8 +30,20 @@ public sealed class DiscordAuthClient : IDisposable
         _http.DefaultRequestHeaders.TryAddWithoutValidation("Referer", "https://discord.com/login");
         _http.DefaultRequestHeaders.TryAddWithoutValidation("X-Discord-Locale", "en-US");
 
-        string tz = TimeZoneInfo.Local.StandardName;
-        if (string.IsNullOrWhiteSpace(tz)) tz = "UTC";
+        string tz = "UTC";
+        try
+        {
+            if (TimeZoneInfo.TryConvertWindowsIdToIanaId(TimeZoneInfo.Local.Id, out var ianaId) && !string.IsNullOrWhiteSpace(ianaId))
+            {
+                tz = ianaId;
+            }
+        }
+        catch { }
+
+        if (!tz.All(c => c >= 32 && c <= 126))
+        {
+            tz = "UTC";
+        }
         _http.DefaultRequestHeaders.TryAddWithoutValidation("X-Discord-Timezone", tz);
 
         var superProps = Convert.ToBase64String(System.Text.Encoding.UTF8.GetBytes(
@@ -151,7 +163,7 @@ public sealed class DiscordAuthClient : IDisposable
 
     public async Task<string> ValidateTokenAsync(string token, CancellationToken ct = default)
     {
-        token = token.Trim().Trim('"').Trim('\'');
+        token = new string(token.Trim().Trim('"').Trim('\'').Where(c => c >= 32 && c <= 126).ToArray());
         if (string.IsNullOrWhiteSpace(token))
         {
             throw new DiscordAuthException("Le jeton ne peut pas être vide.");
