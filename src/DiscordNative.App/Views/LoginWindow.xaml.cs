@@ -7,6 +7,7 @@ public sealed partial class LoginWindow : Window
 {
     private readonly DiscordAuthClient _authClient = new();
     private string? _pendingMfaTicket;
+    private string? _pendingLoginInstanceId;
 
     public LoginWindow()
     {
@@ -52,6 +53,7 @@ public sealed partial class LoginWindow : Window
             if (result.NeedsMfa)
             {
                 _pendingMfaTicket = result.MfaTicket;
+                _pendingLoginInstanceId = result.LoginInstanceId;
                 CredentialsPanel.Visibility = Visibility.Collapsed;
                 MfaPanel.Visibility = Visibility.Visible;
             }
@@ -77,18 +79,18 @@ public sealed partial class LoginWindow : Window
     private async void OnMfaClicked(object sender, RoutedEventArgs e)
     {
         ErrorBar.IsOpen = false;
-        var code = MfaCodeBox.Text.Trim();
+        var code = MfaCodeBox.Text.Replace(" ", "").Replace("-", "").Trim();
 
-        if (code.Length != 6 || _pendingMfaTicket is null)
+        if ((code.Length != 6 && code.Length != 8) || _pendingMfaTicket is null)
         {
-            ShowError("Code à 6 chiffres requis.");
+            ShowError("Code à 6 chiffres (ou code de secours à 8 caractères) requis.");
             return;
         }
 
         SetLoading(true);
         try
         {
-            var result = await _authClient.SubmitTotpAsync(_pendingMfaTicket, code);
+            var result = await _authClient.SubmitTotpAsync(_pendingMfaTicket, code, _pendingLoginInstanceId);
             OnAuthenticated(result.Token!);
         }
         catch (DiscordNative.Protocol.Auth.DiscordAuthException ex)
@@ -99,6 +101,16 @@ public sealed partial class LoginWindow : Window
         {
             SetLoading(false);
         }
+    }
+
+    private void OnMfaBackClicked(object sender, RoutedEventArgs e)
+    {
+        MfaPanel.Visibility = Visibility.Collapsed;
+        CredentialsPanel.Visibility = Visibility.Visible;
+        ErrorBar.IsOpen = false;
+        MfaCodeBox.Text = string.Empty;
+        _pendingMfaTicket = null;
+        _pendingLoginInstanceId = null;
     }
 
     private void OnAuthenticated(string token)

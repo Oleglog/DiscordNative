@@ -31,11 +31,13 @@
             <!-- Étape 2 : code 2FA, masquée par défaut -->
             <StackPanel x:Name="MfaPanel" Spacing="12" Visibility="Collapsed">
                 <TextBlock Text="Vérification en deux étapes" FontWeight="SemiBold" />
-                <TextBox x:Name="MfaCodeBox" PlaceholderText="Code à 6 chiffres"
+                <TextBox x:Name="MfaCodeBox" PlaceholderText="Code à 6 chiffres (ou secours à 8)"
                          Header="Code de votre application d'authentification"
-                         MaxLength="6" InputScope="Number" />
+                         MaxLength="8" />
                 <Button x:Name="MfaButton" Content="Valider" HorizontalAlignment="Stretch"
                         Style="{StaticResource AccentButtonStyle}" Click="OnMfaClicked" />
+                <Button x:Name="MfaBackButton" Content="Retour" HorizontalAlignment="Stretch"
+                        Click="OnMfaBackClicked" />
             </StackPanel>
 
             <ProgressRing x:Name="LoadingRing" IsActive="False" Width="24" Height="24"

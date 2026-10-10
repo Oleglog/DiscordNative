@@ -1,3 +1,7 @@
+param(
+    [string]$Version = "v0.2.2"
+)
+
 $ErrorActionPreference = 'Stop'
 Write-Host "Cleaning dist/InstallerBundle..."
 if (Test-Path "dist\InstallerBundle") {
@@ -19,17 +23,20 @@ Get-ChildItem -Path $installerReleaseDir -File | Where-Object { $_.Name -ne "Dis
     Copy-Item -Force $_.FullName "dist\InstallerBundle\"
 }
 
-Write-Host "Packaging Portable Zip..."
-if (Test-Path "dist\Diswin-v0.2.1-win-x64-portable.zip") {
-    Remove-Item -Force "dist\Diswin-v0.2.1-win-x64-portable.zip"
-}
-Compress-Archive -Path "dist\InstallerBundle\Payload\*" -DestinationPath "dist\Diswin-v0.2.1-win-x64-portable.zip"
+$portableZip = "dist\Diswin-$Version-win-x64-portable.zip"
+$setupZip = "dist\Diswin-Setup-$Version-win-x64.zip"
 
-Write-Host "Packaging Setup Zip..."
-if (Test-Path "dist\Diswin-Setup-v0.2.1-win-x64.zip") {
-    Remove-Item -Force "dist\Diswin-Setup-v0.2.1-win-x64.zip"
+Write-Host "Packaging Portable Zip ($portableZip)..."
+if (Test-Path $portableZip) {
+    Remove-Item -Force $portableZip
 }
-Compress-Archive -Path "dist\InstallerBundle\*" -DestinationPath "dist\Diswin-Setup-v0.2.1-win-x64.zip"
+Compress-Archive -Path "dist\InstallerBundle\Payload\*" -DestinationPath $portableZip
+
+Write-Host "Packaging Setup Zip ($setupZip)..."
+if (Test-Path $setupZip) {
+    Remove-Item -Force $setupZip
+}
+Compress-Archive -Path "dist\InstallerBundle\*" -DestinationPath $setupZip
 
 Write-Host "Done! Artifacts:"
 Get-ChildItem "dist\*.zip" | Select-Object Name, Length, LastWriteTime
