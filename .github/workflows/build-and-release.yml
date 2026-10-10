@@ -4,9 +4,9 @@ on:
   workflow_dispatch:
     inputs:
       version:
-        description: 'Release version tag (e.g. v0.2.4)'
+        description: 'Release version tag (e.g. v0.2.5)'
         required: false
-        default: 'v0.2.4'
+        default: 'v0.2.5'
   push:
     tags:
       - 'v*'
@@ -46,7 +46,7 @@ jobs:
             if ("${{ github.ref }}" -like "refs/tags/*") {
               $ver = "${{ github.ref_name }}"
             } else {
-              $ver = "v0.2.4"
+              $ver = "v0.2.5"
             }
           }
           Write-Host "Packaging version: $ver"
@@ -69,10 +69,8 @@ jobs:
           body: |
             ## Diswin ${{ env.VERSION }} Release
 
-            ### 🚀 Hotfix & Improvements:
-            - **⚡ Fix ASCII Header Crash**: Fixed `Request headers must contain only ASCII characters` crash caused by Cyrillic Windows timezone names (e.g. `RTZ 3 (зима)`) in `X-Discord-Timezone`. Now safely converts to ASCII IANA identifier or defaults to UTC.
-            - **🔑 Direct Token Login**: Added a dedicated "Jeton (Token)" login tab allowing direct authentication via Discord user token, completely bypassing MFA/Cloudflare/hCaptcha blocks.
-            - **🛡️ 2FA Multi-Method Support**: Added detection and selection for Authenticator App (TOTP), SMS verification (with a direct "Envoyer un SMS" button), and Backup codes.
-            - **🧹 Clean JSON Serialization**: Configured `JsonIgnoreCondition.WhenWritingNull` to strictly omit null fields in authentication payloads, matching official Discord web client expectations.
-            - **🔄 Automatic Method Fallback**: If an 8-character code is submitted under TOTP, it automatically attempts backup code validation.
-            - **📋 Input Truncation Removed**: Removed the 8-character limit on the 2FA text box to allow codes of varying lengths, spaces, and hyphens.
+            ### 🚀 Updates:
+            - **🔑 Token Quick-Switch Button**: Added a direct button inside the 2FA panel to immediately switch to Token login if Discord's anti-bot system blocks 2FA.
+            - **🛡️ Two-Way Fallback**: Added automatic fallback between TOTP (6-digit) and Backup (8-character) code endpoints.
+            - **⚡ Fix ASCII Header**: Local timezone header converted to ASCII IANA or UTC.
+            - **🧹 Clean Serialization**: No null values sent to Discord API.

@@ -225,6 +225,13 @@ public sealed partial class LoginWindow : Window
         _pendingLoginInstanceId = null;
     }
 
+    private void OnMfaSwitchToTokenClicked(object sender, RoutedEventArgs e)
+    {
+        MfaPanel.Visibility = Visibility.Collapsed;
+        LoginTabsGrid.Visibility = Visibility.Visible;
+        OnTabTokenClicked(sender, e);
+    }
+
     private async void OnTokenLoginClicked(object sender, RoutedEventArgs e)
     {
         ErrorBar.IsOpen = false;

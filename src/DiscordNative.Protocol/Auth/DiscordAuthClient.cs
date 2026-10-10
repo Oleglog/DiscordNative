@@ -130,13 +130,18 @@ public sealed class DiscordAuthClient : IDisposable
 
             if (body?.Code == 60008)
             {
-                // Auto-fallback: si c'était totp et que le code fait 8 caractères, basculer sur backup
+                // Auto-fallback: si c'était totp et qu'un code à 8 caractères a été saisi, essayer backup
                 if (mfaType == "totp" && code.Length == 8)
                 {
                     return await SubmitMfaAsync(ticket, code, "backup", loginInstanceId, ct);
                 }
+                // Ou si c'était backup et qu'un code à 6 chiffres a été saisi, essayer totp
+                if (mfaType == "backup" && code.Length == 6)
+                {
+                    return await SubmitMfaAsync(ticket, code, "totp", loginInstanceId, ct);
+                }
 
-                throw new DiscordAuthException("Code 2FA incorrect (60008). Vérifiez l'heure de votre PC Windows, ou utilisez un code de secours / connexion par Jeton.");
+                throw new DiscordAuthException("Code 2FA refusé par Discord (erreur 60008). Le système anti-bot de Discord bloque souvent la validation 2FA sur les clients tiers. Utilisez le bouton ci-dessous pour vous connecter directement avec votre Token Discord.");
             }
 
             throw new DiscordAuthException(body?.Message ?? $"Échec de validation MFA (HTTP {(int)response.StatusCode}).");

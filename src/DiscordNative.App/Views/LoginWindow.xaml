@@ -59,7 +59,7 @@
                               SelectionChanged="OnMfaMethodChanged">
                         <ComboBoxItem Content="Application d'authentification (TOTP)" Tag="totp" IsSelected="True" />
                         <ComboBoxItem x:Name="MfaSmsComboItem" Content="Code reçu par SMS" Tag="sms" Visibility="Collapsed" />
-                        <ComboBoxItem x:Name="MfaBackupComboItem" Content="Code de secours (Backup)" Tag="backup" Visibility="Collapsed" />
+                        <ComboBoxItem x:Name="MfaBackupComboItem" Content="Code de secours (Backup)" Tag="backup" />
                     </ComboBox>
 
                     <!-- Bouton pour demander l'envoi du SMS si la méthode SMS est choisie -->
@@ -73,6 +73,8 @@
                             Style="{StaticResource AccentButtonStyle}" Click="OnMfaClicked" />
                     <Button x:Name="MfaBackButton" Content="Retour" HorizontalAlignment="Stretch"
                             Click="OnMfaBackClicked" />
+                    <Button x:Name="MfaSwitchToTokenButton" Content="Se connecter avec un Jeton (Token)" HorizontalAlignment="Stretch"
+                            Click="OnMfaSwitchToTokenClicked" />
                 </StackPanel>
 
                 <ProgressRing x:Name="LoadingRing" IsActive="False" Width="24" Height="24"
