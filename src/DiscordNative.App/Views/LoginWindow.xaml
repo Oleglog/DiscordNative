@@ -12,41 +12,77 @@
         <!-- Zone de titre custom pour garder un look natif épuré -->
         <Grid Grid.Row="0" x:Name="AppTitleBar" Background="Transparent" />
 
-        <StackPanel Grid.Row="1" HorizontalAlignment="Center" VerticalAlignment="Center"
-                    Width="360" Spacing="16">
+        <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto">
+            <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center"
+                        Width="380" Spacing="14" Margin="24">
 
-            <TextBlock Text="Connexion à Discord" FontSize="24" FontWeight="SemiBold"
-                       HorizontalAlignment="Center" Margin="0,0,0,8" />
+                <TextBlock Text="Connexion à Discord" FontSize="24" FontWeight="SemiBold"
+                           HorizontalAlignment="Center" Margin="0,0,0,4" />
 
-            <!-- Étape 1 : email / mot de passe -->
-            <StackPanel x:Name="CredentialsPanel" Spacing="12">
-                <TextBox x:Name="EmailBox" PlaceholderText="E-mail ou numéro de téléphone"
-                         Header="Adresse e-mail" />
-                <PasswordBox x:Name="PasswordBox" PlaceholderText="Mot de passe"
-                             Header="Mot de passe" />
-                <Button x:Name="LoginButton" Content="Se connecter" HorizontalAlignment="Stretch"
-                        Style="{StaticResource AccentButtonStyle}" Click="OnLoginClicked" />
+                <!-- Choix du mode de connexion -->
+                <Grid x:Name="LoginTabsGrid" ColumnDefinitions="*,*" Margin="0,0,0,4">
+                    <Button x:Name="TabCredentialsButton" Content="Identifiants" HorizontalAlignment="Stretch" Margin="0,0,4,0"
+                            Style="{StaticResource AccentButtonStyle}" Click="OnTabCredentialsClicked" />
+                    <Button x:Name="TabTokenButton" Content="Jeton (Token)" Grid.Column="1" HorizontalAlignment="Stretch" Margin="4,0,0,0"
+                            Click="OnTabTokenClicked" />
+                </Grid>
+
+                <!-- Mode 1 : Email / Mot de passe -->
+                <StackPanel x:Name="CredentialsPanel" Spacing="12">
+                    <TextBox x:Name="EmailBox" PlaceholderText="E-mail ou numéro de téléphone"
+                             Header="Adresse e-mail" />
+                    <PasswordBox x:Name="PasswordBox" PlaceholderText="Mot de passe"
+                                 Header="Mot de passe" />
+                    <Button x:Name="LoginButton" Content="Se connecter" HorizontalAlignment="Stretch"
+                            Style="{StaticResource AccentButtonStyle}" Click="OnLoginClicked" />
+                </StackPanel>
+
+                <!-- Mode 2 : Connexion directe par Token -->
+                <StackPanel x:Name="TokenPanel" Spacing="12" Visibility="Collapsed">
+                    <TextBox x:Name="TokenBox" PlaceholderText="Collez votre jeton utilisateur Discord"
+                             Header="Jeton de compte (User Token)" />
+                    <TextBlock Text="Idéal si le 2FA ou le captcha bloque : ouvrez Discord Web > F12 (DevTools) > Console > tapez : window.webpackChunkdiscord_app.push([[Math.random()],{},e=>{for(const m of Object.values(e.c))if(m?.exports?.default?.getToken){console.log(m.exports.default.getToken())}}]) ou copiez depuis localStorage.token"
+                               FontSize="11" Opacity="0.7" TextWrapping="Wrap" />
+                    <Button x:Name="TokenLoginButton" Content="Se connecter avec le jeton" HorizontalAlignment="Stretch"
+                            Style="{StaticResource AccentButtonStyle}" Click="OnTokenLoginClicked" />
+                </StackPanel>
+
+                <!-- Étape 2FA : affichée si le compte requiert MFA -->
+                <StackPanel x:Name="MfaPanel" Spacing="12" Visibility="Collapsed">
+                    <TextBlock Text="Vérification en deux étapes (2FA)" FontWeight="SemiBold" FontSize="16" />
+                    <TextBlock x:Name="MfaDescriptionText"
+                               Text="Entrez le code fourni par votre application ou par SMS."
+                               Opacity="0.8" FontSize="12" TextWrapping="Wrap" />
+
+                    <!-- Choix de méthode si plusieurs sont détectées -->
+                    <ComboBox x:Name="MfaMethodCombo" Header="Méthode de validation" HorizontalAlignment="Stretch"
+                              SelectionChanged="OnMfaMethodChanged">
+                        <ComboBoxItem Content="Application d'authentification (TOTP)" Tag="totp" IsSelected="True" />
+                        <ComboBoxItem x:Name="MfaSmsComboItem" Content="Code reçu par SMS" Tag="sms" Visibility="Collapsed" />
+                        <ComboBoxItem x:Name="MfaBackupComboItem" Content="Code de secours (Backup)" Tag="backup" Visibility="Collapsed" />
+                    </ComboBox>
+
+                    <!-- Bouton pour demander l'envoi du SMS si la méthode SMS est choisie -->
+                    <Button x:Name="SendSmsButton" Content="Envoyer un code par SMS" HorizontalAlignment="Stretch"
+                            Visibility="Collapsed" Click="OnSendSmsClicked" />
+
+                    <TextBox x:Name="MfaCodeBox" PlaceholderText="Code 2FA (ex: 123456 ou code secours)"
+                             Header="Code de vérification" />
+
+                    <Button x:Name="MfaButton" Content="Valider le code" HorizontalAlignment="Stretch"
+                            Style="{StaticResource AccentButtonStyle}" Click="OnMfaClicked" />
+                    <Button x:Name="MfaBackButton" Content="Retour" HorizontalAlignment="Stretch"
+                            Click="OnMfaBackClicked" />
+                </StackPanel>
+
+                <ProgressRing x:Name="LoadingRing" IsActive="False" Width="24" Height="24"
+                              HorizontalAlignment="Center" />
+
+                <InfoBar x:Name="ErrorBar" Severity="Error" IsOpen="False" Title="Erreur" Message="" />
+
+                <TextBlock Text="Client non officiel, non affilié à Discord Inc. L'usage de ce client peut enfreindre les conditions d'utilisation de Discord."
+                           FontSize="11" Opacity="0.6" TextWrapping="Wrap" TextAlignment="Center" Margin="0,8,0,0" />
             </StackPanel>
-
-            <!-- Étape 2 : code 2FA, masquée par défaut -->
-            <StackPanel x:Name="MfaPanel" Spacing="12" Visibility="Collapsed">
-                <TextBlock Text="Vérification en deux étapes" FontWeight="SemiBold" />
-                <TextBox x:Name="MfaCodeBox" PlaceholderText="Code à 6 chiffres (ou secours à 8)"
-                         Header="Code de votre application d'authentification"
-                         MaxLength="8" />
-                <Button x:Name="MfaButton" Content="Valider" HorizontalAlignment="Stretch"
-                        Style="{StaticResource AccentButtonStyle}" Click="OnMfaClicked" />
-                <Button x:Name="MfaBackButton" Content="Retour" HorizontalAlignment="Stretch"
-                        Click="OnMfaBackClicked" />
-            </StackPanel>
-
-            <ProgressRing x:Name="LoadingRing" IsActive="False" Width="24" Height="24"
-                          HorizontalAlignment="Center" />
-
-            <InfoBar x:Name="ErrorBar" Severity="Error" IsOpen="False" Title="Erreur" />
-
-            <TextBlock Text="Client non officiel, non affilié à Discord Inc. L'usage de ce client peut enfreindre les conditions d'utilisation de Discord."
-                       FontSize="11" Opacity="0.6" TextWrapping="Wrap" TextAlignment="Center" Margin="0,16,0,0" />
-        </StackPanel>
+        </ScrollViewer>
     </Grid>
 </Window>

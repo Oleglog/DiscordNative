@@ -4,9 +4,9 @@ on:
   workflow_dispatch:
     inputs:
       version:
-        description: 'Release version tag (e.g. v0.2.2)'
+        description: 'Release version tag (e.g. v0.2.3)'
         required: false
-        default: 'v0.2.2'
+        default: 'v0.2.3'
   push:
     tags:
       - 'v*'
@@ -46,7 +46,7 @@ jobs:
             if ("${{ github.ref }}" -like "refs/tags/*") {
               $ver = "${{ github.ref_name }}"
             } else {
-              $ver = "v0.2.2"
+              $ver = "v0.2.3"
             }
           }
           Write-Host "Packaging version: $ver"
@@ -67,11 +67,12 @@ jobs:
           name: Diswin ${{ env.VERSION }}
           files: dist/*.zip
           body: |
-            ## Diswin ${{ env.VERSION }} Update
+            ## Diswin ${{ env.VERSION }} Release
 
-            ### Fixes & Improvements:
-            - **2FA TOTP Authentication Fix**: Added `login_instance_id` (Discord MFA v2 compatibility) preventing 'invalid code' rejections.
-            - **Anti-Bot & Super Properties**: Added missing Discord client headers (`X-Super-Properties`, `Origin`, `Referer`, locale) to avoid silent hCaptcha rejections.
-            - **Backup Codes Support**: Allowed 8-character backup codes and dynamic routing to `/auth/mfa/backup`.
-            - **Input Sanitization**: Automatically strip spaces and dashes from pasted 2FA codes.
-            - **Navigation Fix**: Added a 'Retour' (Back) button in MFA screen to prevent getting stuck with burned tickets.
+            ### 🚀 What's New & Fixed:
+            - **🔑 Direct Token Login**: Added a dedicated "Jeton (Token)" login tab allowing direct authentication via Discord user token, completely bypassing MFA/Cloudflare/hCaptcha blocks.
+            - **🛡️ 2FA Multi-Method Support**: Added detection and selection for Authenticator App (TOTP), SMS verification (with a direct "Envoyer un SMS" button), and Backup codes.
+            - **🧹 Clean JSON Serialization**: Configured `JsonIgnoreCondition.WhenWritingNull` to strictly omit null fields in authentication payloads, matching official Discord web client expectations.
+            - **🔄 Automatic Method Fallback**: If an 8-character code is submitted under TOTP, it automatically attempts backup code validation.
+            - **🌍 Localized Headers**: Added local system timezone support to `X-Discord-Timezone` header.
+            - **📋 Input Truncation Removed**: Removed the 8-character limit on the 2FA text box to allow codes of varying lengths, spaces, and hyphens.
