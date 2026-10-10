@@ -19,8 +19,8 @@
                     </Border.Background>
                 </Border>
                 <StackPanel VerticalAlignment="Center">
-                    <TextBlock Text="Installation de DiscordNative" FontSize="22" FontWeight="Bold" />
-                    <TextBlock Text="Client Discord natif WinUI 3 et C# (.NET 8)" FontSize="13" Opacity="0.6" />
+                    <TextBlock Text="Installation de Diswin" FontSize="22" FontWeight="Bold" />
+                    <TextBlock Text="Client Discord ultra-rapide WinUI 3 et C# (.NET 8)" FontSize="13" Opacity="0.6" />
                 </StackPanel>
             </StackPanel>
         </StackPanel>

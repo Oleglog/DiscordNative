@@ -1,4 +1,4 @@
-﻿using Microsoft.UI.Xaml.Data;
+using Microsoft.UI.Xaml.Data;
 using Microsoft.UI.Xaml.Media.Imaging;
 
 namespace DiscordNative.App.Services;
@@ -9,7 +9,10 @@ public sealed class StringToImageSourceConverter : IValueConverter
     {
         if (value is string url && !string.IsNullOrEmpty(url))
         {
-            return new BitmapImage(new Uri(url));
+            var bitmap = new BitmapImage(new Uri(url));
+            // Disable automatic GIF animation playback by default so avatars/guild icons don't play constantly
+            bitmap.AutoPlay = false;
+            return bitmap;
         }
         return null;
     }

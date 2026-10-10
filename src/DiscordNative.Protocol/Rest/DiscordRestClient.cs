@@ -27,6 +27,19 @@ public sealed class DiscordRestClient : IDisposable
     public Task<DiscordUser?> GetCurrentUserAsync(CancellationToken ct = default) =>
         _http.GetFromJsonAsync<DiscordUser>($"{ApiBase}/users/@me", ct);
 
+    public async Task<DiscordUser> ModifyCurrentUserAsync(string? globalName = null, string? username = null, string? bio = null, CancellationToken ct = default)
+    {
+        var body = new Dictionary<string, object?>();
+        if (globalName is not null) body["global_name"] = globalName;
+        if (username is not null) body["username"] = username;
+        if (bio is not null) body["bio"] = bio;
+
+        var response = await _http.PatchAsJsonAsync($"{ApiBase}/users/@me", body, ct);
+        response.EnsureSuccessStatusCode();
+        return await response.Content.ReadFromJsonAsync<DiscordUser>(cancellationToken: ct)
+               ?? throw new InvalidOperationException("Réponse de mise à jour du profil illisible.");
+    }
+
     public async Task<List<DiscordGuild>> GetGuildsAsync(CancellationToken ct = default) =>
         await _http.GetFromJsonAsync<List<DiscordGuild>>($"{ApiBase}/users/@me/guilds", ct) ?? new();
 

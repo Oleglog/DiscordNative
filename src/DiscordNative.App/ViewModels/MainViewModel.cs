@@ -66,7 +66,12 @@ public sealed partial class MainViewModel : ObservableObject
     public Microsoft.UI.Xaml.Visibility VoiceViewVisibility => IsVoiceChannelSelected ? Microsoft.UI.Xaml.Visibility.Visible : Microsoft.UI.Xaml.Visibility.Collapsed;
     public Microsoft.UI.Xaml.Visibility TextViewVisibility => IsVoiceChannelSelected ? Microsoft.UI.Xaml.Visibility.Collapsed : Microsoft.UI.Xaml.Visibility.Visible;
 
+    public DiscordUser? CurrentUser => _client.CurrentUser;
     public string? CurrentUserAvatarUrl => _client.CurrentUser?.AvatarUrl;
+    public string? CurrentUserBannerUrl => _client.CurrentUser?.BannerUrl;
+    public bool CurrentUserHasBanner => _client.CurrentUser?.HasBanner ?? false;
+    public string CurrentUserTag => _client.CurrentUser?.UserTag ?? "@user";
+    public string CurrentUserBio => string.IsNullOrWhiteSpace(_client.CurrentUser?.Bio) ? "Aucune bio définie." : _client.CurrentUser.Bio;
 
     public Microsoft.UI.Xaml.Visibility ShowingGuildChannels => _showingFriends ? Microsoft.UI.Xaml.Visibility.Collapsed : Microsoft.UI.Xaml.Visibility.Visible;
     public Microsoft.UI.Xaml.Visibility ShowingFriendsView => _showingFriends ? Microsoft.UI.Xaml.Visibility.Visible : Microsoft.UI.Xaml.Visibility.Collapsed;
@@ -83,6 +88,29 @@ public sealed partial class MainViewModel : ObservableObject
     public void OnUserLoaded()
     {
         CurrentUserName = _client.CurrentUser?.DisplayName ?? "Utilisateur inconnu";
+        OnPropertyChanged(nameof(CurrentUser));
+        OnPropertyChanged(nameof(CurrentUserAvatarUrl));
+        OnPropertyChanged(nameof(CurrentUserBannerUrl));
+        OnPropertyChanged(nameof(CurrentUserHasBanner));
+        OnPropertyChanged(nameof(CurrentUserTag));
+        OnPropertyChanged(nameof(CurrentUserBio));
+    }
+
+    public async Task UpdateProfileAsync(string newDisplayName, string newBio)
+    {
+        try
+        {
+            var updated = await _client.Rest.ModifyCurrentUserAsync(globalName: newDisplayName, bio: newBio);
+            _client.CurrentUser = updated;
+            OnUserLoaded();
+        }
+        catch (Exception ex)
+        {
+            System.IO.File.AppendAllText(
+                System.IO.Path.Combine(System.IO.Path.GetTempPath(), "DiscordNative_crash.log"),
+                $"[{DateTime.Now}] UpdateProfileAsync failed: {ex}\n\n");
+            throw;
+        }
     }
 
     public void ShowFriendsView()

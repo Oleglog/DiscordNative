@@ -8,6 +8,23 @@
     <Grid>
         <controls:BackgroundImageHost x:Name="BackgroundHost" />
 
+        <!-- Splash Screen animé au démarrage façon Discord -->
+        <Grid x:Name="StartupSplash" Background="{ThemeResource ApplicationPageBackgroundThemeBrush}"
+              Canvas.ZIndex="1000" HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
+            <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center" Spacing="20">
+                <Border x:Name="SplashLogoBorder" Width="96" Height="96" CornerRadius="28">
+                    <Border.Background>
+                        <ImageBrush ImageSource="ms-appx:///Assets/AppIcon.png" Stretch="UniformToFill" />
+                    </Border.Background>
+                </Border>
+                <StackPanel Spacing="6" HorizontalAlignment="Center">
+                    <TextBlock Text="Diswin" FontSize="26" FontWeight="Bold" HorizontalAlignment="Center" />
+                    <TextBlock x:Name="SplashStatusText" Text="Vérification des mises à jour..." FontSize="13" Opacity="0.7" HorizontalAlignment="Center" />
+                </StackPanel>
+                <ProgressBar IsIndeterminate="True" Width="200" HorizontalAlignment="Center" CornerRadius="4" />
+            </StackPanel>
+        </Grid>
+
         <Grid Background="Transparent">
             <Grid.RowDefinitions>
                 <RowDefinition Height="32" />
@@ -22,7 +39,7 @@
                      IsOpen="False"
                      Severity="Informational"
                      Title="Mise à jour disponible"
-                     Message="Une nouvelle version de DiscordNative est disponible."
+                     Message="Une nouvelle version de Diswin est disponible."
                      CornerRadius="8"
                      Margin="12,0,12,8">
                 <InfoBar.ActionButton>
@@ -58,10 +75,35 @@
                               ItemsSource="{x:Bind ViewModel.Guilds, Mode=OneWay}"
                               SelectionMode="Single"
                               SelectionChanged="OnGuildSelected"
-                              Padding="8,4,8,0">
+                              Padding="0,4,0,0">
+                        <ListView.ItemContainerStyle>
+                            <Style TargetType="ListViewItem">
+                                <Setter Property="Padding" Value="0" />
+                                <Setter Property="Margin" Value="0,0,0,8" />
+                                <Setter Property="MinHeight" Value="48" />
+                                <Setter Property="MinWidth" Value="48" />
+                                <Setter Property="HorizontalContentAlignment" Value="Center" />
+                                <Setter Property="VerticalContentAlignment" Value="Center" />
+                                <Setter Property="CornerRadius" Value="16" />
+                            </Style>
+                        </ListView.ItemContainerStyle>
                         <ListView.ItemTemplate>
                             <DataTemplate x:DataType="models:DiscordGuild">
-                                <Grid Width="48" Height="48" Margin="0,0,0,8" ToolTipService.ToolTip="{x:Bind Name}">
+                                <Grid Width="48" Height="48" ToolTipService.ToolTip="{x:Bind Name}"
+                                      PointerEntered="OnAvatarPointerEntered" PointerExited="OnAvatarPointerExited">
+                                    <Grid.ContextFlyout>
+                                        <MenuFlyout>
+                                            <MenuFlyoutItem Text="Marquer comme lu" Click="OnMarkGuildReadClicked">
+                                                <MenuFlyoutItem.Icon><FontIcon Glyph="&#xE8FB;" /></MenuFlyoutItem.Icon>
+                                            </MenuFlyoutItem>
+                                            <MenuFlyoutItem Text="Copier le nom" Click="OnCopyGuildNameClicked">
+                                                <MenuFlyoutItem.Icon><FontIcon Glyph="&#xE8C8;" /></MenuFlyoutItem.Icon>
+                                            </MenuFlyoutItem>
+                                            <MenuFlyoutItem Text="Copier l'identifiant" Click="OnCopyGuildIdClicked">
+                                                <MenuFlyoutItem.Icon><FontIcon Glyph="&#xE8C8;" /></MenuFlyoutItem.Icon>
+                                            </MenuFlyoutItem>
+                                        </MenuFlyout>
+                                    </Grid.ContextFlyout>
                                     <Rectangle Fill="{ThemeResource ControlFillColorSecondaryBrush}" RadiusX="16" RadiusY="16" />
                                     <Rectangle RadiusX="16" RadiusY="16" Visibility="{x:Bind HasIcon, Converter={StaticResource BoolToVisibilityConverter}}">
                                         <Rectangle.Fill>
@@ -116,6 +158,16 @@
                             <ListView.ItemTemplate>
                                 <DataTemplate x:DataType="models:DiscordChannel">
                                     <StackPanel Orientation="Horizontal" Spacing="8" Padding="8,6">
+                                        <StackPanel.ContextFlyout>
+                                            <MenuFlyout>
+                                                <MenuFlyoutItem Text="Copier le nom" Click="OnCopyChannelNameClicked">
+                                                    <MenuFlyoutItem.Icon><FontIcon Glyph="&#xE8C8;" /></MenuFlyoutItem.Icon>
+                                                </MenuFlyoutItem>
+                                                <MenuFlyoutItem Text="Copier l'identifiant" Click="OnCopyChannelIdClicked">
+                                                    <MenuFlyoutItem.Icon><FontIcon Glyph="&#xE8C8;" /></MenuFlyoutItem.Icon>
+                                                </MenuFlyoutItem>
+                                            </MenuFlyout>
+                                        </StackPanel.ContextFlyout>
                                         <FontIcon Glyph="{x:Bind Type, Converter={StaticResource ChannelTypeToGlyphConverter}}"
                                                   FontSize="14" Opacity="0.6" />
                                         <TextBlock Text="{x:Bind DisplayName}" VerticalAlignment="Center" />
@@ -135,7 +187,20 @@
                                     <ListView.ItemTemplate>
                                         <DataTemplate x:DataType="models:DiscordChannel">
                                             <StackPanel Orientation="Horizontal" Spacing="8" Padding="8,6">
-                                                <Grid Width="28" Height="28">
+                                                <StackPanel.ContextFlyout>
+                                                    <MenuFlyout>
+                                                        <MenuFlyoutItem Text="Ouvrir le salon" Click="OnOpenDmChannelClicked">
+                                                            <MenuFlyoutItem.Icon><FontIcon Glyph="&#xE8BD;" /></MenuFlyoutItem.Icon>
+                                                        </MenuFlyoutItem>
+                                                        <MenuFlyoutItem Text="Copier le nom" Click="OnCopyChannelNameClicked">
+                                                            <MenuFlyoutItem.Icon><FontIcon Glyph="&#xE8C8;" /></MenuFlyoutItem.Icon>
+                                                        </MenuFlyoutItem>
+                                                        <MenuFlyoutItem Text="Copier l'identifiant" Click="OnCopyChannelIdClicked">
+                                                            <MenuFlyoutItem.Icon><FontIcon Glyph="&#xE8C8;" /></MenuFlyoutItem.Icon>
+                                                        </MenuFlyoutItem>
+                                                    </MenuFlyout>
+                                                </StackPanel.ContextFlyout>
+                                                <Grid Width="28" Height="28" PointerEntered="OnAvatarPointerEntered" PointerExited="OnAvatarPointerExited">
                                                     <Ellipse Fill="{ThemeResource ControlFillColorSecondaryBrush}" />
                                                     <Ellipse>
                                                         <Ellipse.Fill>
@@ -157,7 +222,20 @@
                                     <ListView.ItemTemplate>
                                         <DataTemplate x:DataType="models:DiscordRelationship">
                                             <StackPanel Orientation="Horizontal" Spacing="8" Padding="8,6">
-                                                <Grid Width="28" Height="28">
+                                                <StackPanel.ContextFlyout>
+                                                    <MenuFlyout>
+                                                        <MenuFlyoutItem Text="Voir le profil" Click="OnFriendProfileClicked">
+                                                            <MenuFlyoutItem.Icon><FontIcon Glyph="&#xE77B;" /></MenuFlyoutItem.Icon>
+                                                        </MenuFlyoutItem>
+                                                        <MenuFlyoutItem Text="Copier le pseudo" Click="OnCopyFriendUsernameClicked">
+                                                            <MenuFlyoutItem.Icon><FontIcon Glyph="&#xE8C8;" /></MenuFlyoutItem.Icon>
+                                                        </MenuFlyoutItem>
+                                                        <MenuFlyoutItem Text="Copier l'identifiant" Click="OnCopyFriendIdClicked">
+                                                            <MenuFlyoutItem.Icon><FontIcon Glyph="&#xE8C8;" /></MenuFlyoutItem.Icon>
+                                                        </MenuFlyoutItem>
+                                                    </MenuFlyout>
+                                                </StackPanel.ContextFlyout>
+                                                <Grid Width="28" Height="28" PointerEntered="OnAvatarPointerEntered" PointerExited="OnAvatarPointerExited">
                                                     <Ellipse Fill="{ThemeResource ControlFillColorSecondaryBrush}" />
                                                     <Ellipse>
                                                         <Ellipse.Fill>
@@ -202,34 +280,66 @@
                                 <ColumnDefinition Width="Auto" />
                             </Grid.ColumnDefinitions>
 
-                            <!-- Profil & Statut Sélecteur -->
+                            <!-- Profil & Statut Sélecteur avec Popout Discord complet -->
                             <Button Grid.Column="0" Background="Transparent" BorderThickness="0" Padding="4" HorizontalAlignment="Stretch" HorizontalContentAlignment="Left" CornerRadius="8">
                                 <Button.Flyout>
-                                    <MenuFlyout>
-                                        <MenuFlyoutItem Text="En ligne" Click="OnStatusOnlineClicked">
-                                            <MenuFlyoutItem.Icon>
-                                                <FontIcon Glyph="&#xF136;" Foreground="#23A55A" />
-                                            </MenuFlyoutItem.Icon>
-                                        </MenuFlyoutItem>
-                                        <MenuFlyoutItem Text="Inactif" Click="OnStatusIdleClicked">
-                                            <MenuFlyoutItem.Icon>
-                                                <FontIcon Glyph="&#xF136;" Foreground="#F0B232" />
-                                            </MenuFlyoutItem.Icon>
-                                        </MenuFlyoutItem>
-                                        <MenuFlyoutItem Text="Ne pas déranger" Click="OnStatusDndClicked">
-                                            <MenuFlyoutItem.Icon>
-                                                <FontIcon Glyph="&#xF136;" Foreground="#F23F43" />
-                                            </MenuFlyoutItem.Icon>
-                                        </MenuFlyoutItem>
-                                        <MenuFlyoutItem Text="Invisible" Click="OnStatusInvisibleClicked">
-                                            <MenuFlyoutItem.Icon>
-                                                <FontIcon Glyph="&#xF136;" Foreground="#80848E" />
-                                            </MenuFlyoutItem.Icon>
-                                        </MenuFlyoutItem>
-                                    </MenuFlyout>
+                                    <Flyout Placement="TopEdgeAlignedLeft">
+                                        <Flyout.FlyoutPresenterStyle>
+                                            <Style TargetType="FlyoutPresenter">
+                                                <Setter Property="Padding" Value="0" />
+                                                <Setter Property="CornerRadius" Value="16" />
+                                                <Setter Property="MaxWidth" Value="340" />
+                                            </Style>
+                                        </Flyout.FlyoutPresenterStyle>
+                                        <Grid Width="320" Background="{ThemeResource LayerFillColorDefaultBrush}">
+                                            <!-- Bannière utilisateur -->
+                                            <Border Height="90" Background="#5865F2" CornerRadius="16,16,0,0">
+                                                <Image Source="{x:Bind ViewModel.CurrentUserBannerUrl, Mode=OneWay, Converter={StaticResource StringToImageSourceConverter}}"
+                                                       Visibility="{x:Bind ViewModel.CurrentUserHasBanner, Mode=OneWay, Converter={StaticResource BoolToVisibilityConverter}}"
+                                                       Stretch="UniformToFill" />
+                                            </Border>
+
+                                            <!-- Avatar rond qui chevauche la bannière -->
+                                            <Ellipse Width="76" Height="76" Margin="16,50,0,0" HorizontalAlignment="Left" VerticalAlignment="Top"
+                                                     StrokeThickness="5" Stroke="{ThemeResource ApplicationPageBackgroundThemeBrush}">
+                                                <Ellipse.Fill>
+                                                    <ImageBrush ImageSource="{x:Bind ViewModel.CurrentUserAvatarUrl, Mode=OneWay, Converter={StaticResource StringToImageSourceConverter}}" Stretch="UniformToFill" />
+                                                </Ellipse.Fill>
+                                            </Ellipse>
+
+                                            <!-- Pastille d'état sur l'avatar -->
+                                            <Ellipse Width="16" Height="16" Margin="70,105,0,0" HorizontalAlignment="Left" VerticalAlignment="Top"
+                                                     Fill="{x:Bind ViewModel.StatusDotBrush, Mode=OneWay}"
+                                                     Stroke="{ThemeResource ApplicationPageBackgroundThemeBrush}" StrokeThickness="3" />
+
+                                            <!-- Contenu du profil -->
+                                            <StackPanel Margin="16,134,16,16" Spacing="8">
+                                                <TextBlock Text="{x:Bind ViewModel.CurrentUserName, Mode=OneWay}" FontWeight="Bold" FontSize="18" TextTrimming="CharacterEllipsis" />
+                                                <TextBlock Text="{x:Bind ViewModel.CurrentUserTag, Mode=OneWay}" Opacity="0.6" FontSize="12" />
+
+                                                <!-- Statut Sélecteur rapide -->
+                                                <StackPanel Orientation="Horizontal" Spacing="6" HorizontalAlignment="Stretch">
+                                                    <Button Content="🟢 En ligne" Click="OnStatusOnlineClicked" Padding="6,4" FontSize="11" CornerRadius="6" />
+                                                    <Button Content="🟡 Inactif" Click="OnStatusIdleClicked" Padding="6,4" FontSize="11" CornerRadius="6" />
+                                                    <Button Content="🔴 DND" Click="OnStatusDndClicked" Padding="6,4" FontSize="11" CornerRadius="6" />
+                                                    <Button Content="⚪ Invisible" Click="OnStatusInvisibleClicked" Padding="6,4" FontSize="11" CornerRadius="6" />
+                                                </StackPanel>
+
+                                                <MenuFlyoutSeparator Margin="0,4" />
+
+                                                <!-- Bio / À propos de moi -->
+                                                <TextBlock Text="À PROPOS DE MOI" FontSize="11" FontWeight="Bold" Opacity="0.6" />
+                                                <TextBlock Text="{x:Bind ViewModel.CurrentUserBio, Mode=OneWay}" FontSize="12" TextWrapping="Wrap" Opacity="0.85" />
+
+                                                <!-- Bouton Modifier mon profil -->
+                                                <Button Content="Modifier mon profil" HorizontalAlignment="Stretch" Margin="0,6,0,0"
+                                                        Click="OnEditProfileClicked" Style="{StaticResource AccentButtonStyle}" />
+                                            </StackPanel>
+                                        </Grid>
+                                    </Flyout>
                                 </Button.Flyout>
                                 <StackPanel Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
-                                    <Grid Width="34" Height="34">
+                                    <Grid Width="34" Height="34" PointerEntered="OnAvatarPointerEntered" PointerExited="OnAvatarPointerExited">
                                         <Ellipse Fill="{ThemeResource ControlFillColorSecondaryBrush}" />
                                         <Ellipse>
                                             <Ellipse.Fill>
@@ -319,11 +429,31 @@
                         <ListView.ItemTemplate>
                             <DataTemplate x:DataType="models:DiscordMessage">
                                 <StackPanel Margin="0,2,0,6" Spacing="2">
+                                    <StackPanel.ContextFlyout>
+                                        <MenuFlyout>
+                                            <MenuFlyoutItem Text="Copier le message" Click="OnCopyMessageTextClicked">
+                                                <MenuFlyoutItem.Icon><FontIcon Glyph="&#xE8C8;" /></MenuFlyoutItem.Icon>
+                                            </MenuFlyoutItem>
+                                            <MenuFlyoutItem Text="Ajouter 👍" Click="OnQuickReactThumbsUpClicked" />
+                                            <MenuFlyoutItem Text="Ajouter ❤️" Click="OnQuickReactHeartClicked" />
+                                            <MenuFlyoutItem Text="Ajouter 😂" Click="OnQuickReactJoyClicked" />
+                                            <MenuFlyoutItem Text="Ajouter 🔥" Click="OnQuickReactFireClicked" />
+                                            <MenuFlyoutSeparator />
+                                            <MenuFlyoutItem Text="Supprimer le message" Click="OnDeleteMessageClicked" Foreground="#FF453A">
+                                                <MenuFlyoutItem.Icon><FontIcon Glyph="&#xE74D;" Foreground="#FF453A" /></MenuFlyoutItem.Icon>
+                                            </MenuFlyoutItem>
+                                            <MenuFlyoutSeparator />
+                                            <MenuFlyoutItem Text="Copier l'identifiant" Click="OnCopyMessageIdClicked">
+                                                <MenuFlyoutItem.Icon><FontIcon Glyph="&#xE8C8;" /></MenuFlyoutItem.Icon>
+                                            </MenuFlyoutItem>
+                                        </MenuFlyout>
+                                    </StackPanel.ContextFlyout>
                                     <StackPanel Orientation="Horizontal" Spacing="10" Margin="0,12,0,4"
                                                 Visibility="{x:Bind ShowHeader, Converter={StaticResource BoolToVisibilityConverter}}">
 
                                         <!-- Bouton avatar avec Popout Profil ultra détaillé façon Discord -->
-                                        <Button Padding="0" Background="Transparent" BorderThickness="0" CornerRadius="20" VerticalAlignment="Top">
+                                        <Button Padding="0" Background="Transparent" BorderThickness="0" CornerRadius="20" VerticalAlignment="Top"
+                                                PointerEntered="OnAvatarPointerEntered" PointerExited="OnAvatarPointerExited">
                                             <Button.Flyout>
                                                 <Flyout>
                                                     <Flyout.FlyoutPresenterStyle>
@@ -335,7 +465,7 @@
                                                     </Flyout.FlyoutPresenterStyle>
                                                     <Grid Width="300" Background="{ThemeResource LayerFillColorDefaultBrush}">
                                                         <!-- Bannière -->
-                                                        <Border Height="90" Background="{ThemeResource SystemControlBackgroundAccentBrush}" CornerRadius="16,16,0,0">
+                                                        <Border Height="90" Background="#5865F2" CornerRadius="16,16,0,0">
                                                             <Image Source="{x:Bind Author.BannerUrl, Converter={StaticResource StringToImageSourceConverter}}"
                                                                    Visibility="{x:Bind Author.HasBanner, Converter={StaticResource BoolToVisibilityConverter}}"
                                                                    Stretch="UniformToFill" />
@@ -358,7 +488,7 @@
                                                             <Border Background="{ThemeResource CardBackgroundFillColorDefaultBrush}" CornerRadius="8" Padding="8,4">
                                                                 <StackPanel Orientation="Horizontal" Spacing="6">
                                                                     <FontIcon Glyph="&#xE734;" FontSize="12" Foreground="Goldenrod" />
-                                                                    <TextBlock Text="Utilisateur Discord Native" FontSize="11" Opacity="0.8" />
+                                                                    <TextBlock Text="Utilisateur Diswin" FontSize="11" Opacity="0.8" />
                                                                 </StackPanel>
                                                             </Border>
 
@@ -366,7 +496,7 @@
                                                             <MenuFlyoutSeparator Margin="0,4" />
 
                                                             <TextBlock Text="À PROPOS DE MOI" FontSize="11" FontWeight="Bold" Opacity="0.6" />
-                                                            <TextBlock Text="Grand voyageur de salons Discord." FontSize="13" TextWrapping="Wrap" Opacity="0.9" />
+                                                            <TextBlock Text="{x:Bind Author.AboutMe}" FontSize="13" TextWrapping="Wrap" Opacity="0.9" />
 
                                                             <!-- Champ de message direct -->
                                                             <TextBox PlaceholderText="Envoyer un message..." CornerRadius="8" Margin="0,6,0,0" />

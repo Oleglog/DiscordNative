@@ -47,7 +47,7 @@ public static class UpdateService
         try
         {
             using var req = new HttpRequestMessage(HttpMethod.Get, $"https://api.github.com/repos/{RepoOwner}/{RepoName}/releases");
-            req.Headers.UserAgent.Add(new ProductInfoHeaderValue("DiscordNative", "1.0"));
+            req.Headers.UserAgent.Add(new ProductInfoHeaderValue("Diswin", "1.0"));
 
             var resp = await Http.SendAsync(req);
             if (!resp.IsSuccessStatusCode) return null;
@@ -57,7 +57,7 @@ public static class UpdateService
             if (releases is null || releases.Count == 0) return null;
 
             var latest = releases[0];
-            var currentVersion = "v0.2.0";
+            var currentVersion = "v0.2.1";
 
             if (latest.TagName != currentVersion && !latest.TagName.Equals(currentVersion + "-exp", StringComparison.OrdinalIgnoreCase))
             {

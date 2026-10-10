@@ -13,9 +13,10 @@ public sealed partial class MainWindow : Window
     public MainWindow(string token)
     {
         InitializeComponent();
-        Title = "DiscordNative";
+        Title = "Diswin";
         ExtendsContentIntoTitleBar = true;
         SystemBackdrop = new Microsoft.UI.Xaml.Media.MicaBackdrop();
+        SetWindowIcon();
 
         if (Content is FrameworkElement root)
         {
@@ -36,12 +37,29 @@ public sealed partial class MainWindow : Window
         Activated += OnWindowActivatedFirstTime;
     }
 
+    private void SetWindowIcon()
+    {
+        try
+        {
+            var hWnd = WinRT.Interop.WindowNative.GetWindowHandle(this);
+            var windowId = Microsoft.UI.Win32Interop.GetWindowIdFromWindow(hWnd);
+            var appWindow = Microsoft.UI.Windowing.AppWindow.GetFromWindowId(windowId);
+            var iconPath = System.IO.Path.Combine(AppContext.BaseDirectory, "app.ico");
+            if (System.IO.File.Exists(iconPath))
+            {
+                appWindow.SetIcon(iconPath);
+            }
+        }
+        catch { }
+    }
+
     private async void OnWindowActivatedFirstTime(object sender, WindowActivatedEventArgs args)
     {
         Activated -= OnWindowActivatedFirstTime;
         Closed += (_, _) => App.Trace("MainWindow fermée");
         try
         {
+            RootContent.UpdateSplashStatus("Connexion à Discord...");
             App.Trace("StartAsync...");
             await _client.StartAsync();
             App.Trace($"StartAsync OK: user={_client.CurrentUser?.DisplayName} guilds={_client.Guilds.Count} dms={_client.PrivateChannels.Count} friends={_client.Friends.Count}");
@@ -54,6 +72,9 @@ public sealed partial class MainWindow : Window
                 ViewModel.ShowFriendsView();
                 _ = ViewModel.SelectChannelAsync(_client.PrivateChannels[0]);
             }
+
+            RootContent.UpdateSplashStatus("Prêt !");
+            await RootContent.DismissSplashAsync();
         }
         catch (Exception ex)
         {

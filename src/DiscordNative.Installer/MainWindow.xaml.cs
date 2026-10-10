@@ -12,11 +12,28 @@ public sealed partial class MainWindow : Window
     public MainWindow()
     {
         InitializeComponent();
-        Title = "Installateur DiscordNative";
+        Title = "Installateur Diswin";
         SystemBackdrop = new Microsoft.UI.Xaml.Media.MicaBackdrop();
+        SetWindowIcon();
 
-        _defaultDir = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "Programs", "DiscordNative");
+        _defaultDir = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "Programs", "Diswin");
         InstallPathBox.Text = _defaultDir;
+    }
+
+    private void SetWindowIcon()
+    {
+        try
+        {
+            var hWnd = WinRT.Interop.WindowNative.GetWindowHandle(this);
+            var windowId = Microsoft.UI.Win32Interop.GetWindowIdFromWindow(hWnd);
+            var appWindow = Microsoft.UI.Windowing.AppWindow.GetFromWindowId(windowId);
+            var iconPath = Path.Combine(AppContext.BaseDirectory, "app.ico");
+            if (File.Exists(iconPath))
+            {
+                appWindow.SetIcon(iconPath);
+            }
+        }
+        catch { }
     }
 
     private async void OnBrowseClicked(object sender, RoutedEventArgs e)
@@ -79,20 +96,20 @@ public sealed partial class MainWindow : Window
                 if (DesktopShortcutCheck.IsChecked == true)
                 {
                     var desktopPath = Environment.GetFolderPath(Environment.SpecialFolder.DesktopDirectory);
-                    CreateShortcut(mainExe, Path.Combine(desktopPath, "DiscordNative.lnk"));
+                    CreateShortcut(mainExe, Path.Combine(desktopPath, "Diswin.lnk"));
                 }
 
                 // Création du raccourci Menu Démarrer si demandé
                 if (StartMenuCheck.IsChecked == true)
                 {
                     var startMenuPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.StartMenu), "Programs");
-                    CreateShortcut(mainExe, Path.Combine(startMenuPath, "DiscordNative.lnk"));
+                    CreateShortcut(mainExe, Path.Combine(startMenuPath, "Diswin.lnk"));
                 }
             });
 
             StatusText.Text = "Installation terminée avec succès !";
             InstallProgress.Visibility = Visibility.Collapsed;
-            InstallButton.Content = "Lancer DiscordNative";
+            InstallButton.Content = "Lancer Diswin";
             InstallButton.IsEnabled = true;
             InstallButton.Click -= OnInstallClicked;
             InstallButton.Click += (_, _) =>
@@ -122,7 +139,7 @@ public sealed partial class MainWindow : Window
             shortcut.TargetPath = targetPath;
             shortcut.WorkingDirectory = Path.GetDirectoryName(targetPath);
             shortcut.WindowStyle = 1;
-            shortcut.Description = "DiscordNative - Client Discord léger en WinUI 3";
+            shortcut.Description = "Diswin - Client Discord ultra-rapide en WinUI 3";
             shortcut.Save();
         }
         catch { }

@@ -1,4 +1,4 @@
-﻿using DiscordNative.Protocol.Auth;
+using DiscordNative.Protocol.Auth;
 using Microsoft.UI.Xaml;
 
 namespace DiscordNative.App.Views;
@@ -11,9 +11,26 @@ public sealed partial class LoginWindow : Window
     public LoginWindow()
     {
         InitializeComponent();
-        Title = "DiscordNative — Connexion";
+        Title = "Diswin — Connexion";
         ExtendsContentIntoTitleBar = true;
         SetTitleBar(AppTitleBar);
+        SetWindowIcon();
+    }
+
+    private void SetWindowIcon()
+    {
+        try
+        {
+            var hWnd = WinRT.Interop.WindowNative.GetWindowHandle(this);
+            var windowId = Microsoft.UI.Win32Interop.GetWindowIdFromWindow(hWnd);
+            var appWindow = Microsoft.UI.Windowing.AppWindow.GetFromWindowId(windowId);
+            var iconPath = System.IO.Path.Combine(AppContext.BaseDirectory, "app.ico");
+            if (System.IO.File.Exists(iconPath))
+            {
+                appWindow.SetIcon(iconPath);
+            }
+        }
+        catch { }
     }
 
     private async void OnLoginClicked(object sender, RoutedEventArgs e)

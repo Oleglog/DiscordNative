@@ -22,9 +22,17 @@ public sealed class DiscordGuild
     [JsonPropertyName("roles")]
     public List<DiscordRole> Roles { get; set; } = new();
 
-    public string? IconUrl => Icon is null
+    public bool IsAnimated => Icon is not null && Icon.StartsWith("a_");
+
+    public string? StaticIconUrl => Icon is null
+        ? null
+        : $"https://cdn.discordapp.com/icons/{Id}/{Icon}.png?size=128";
+
+    public string? AnimatedIconUrl => Icon is null
         ? null
         : $"https://cdn.discordapp.com/icons/{Id}/{Icon}.{(Icon.StartsWith("a_") ? "gif" : "png")}?size=128";
+
+    public string? IconUrl => AnimatedIconUrl;
 
     public bool HasIcon => Icon is not null;
     public bool ShowInitials => Icon is null;

@@ -21,7 +21,7 @@ public sealed class DiscordClient : IAsyncDisposable
     private DiscordGatewayClient? _gateway;
 
     public DiscordRestClient Rest { get; }
-    public DiscordUser? CurrentUser { get; private set; }
+    public DiscordUser? CurrentUser { get; set; }
     public ObservableCollection<DiscordGuild> Guilds { get; } = new();
     public ObservableCollection<DiscordChannel> PrivateChannels { get; } = new();
     public ObservableCollection<DiscordRelationship> Friends { get; } = new();
