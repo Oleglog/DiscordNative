@@ -20,15 +20,54 @@
                            HorizontalAlignment="Center" Margin="0,0,0,4" />
 
                 <!-- Choix du mode de connexion -->
-                <Grid x:Name="LoginTabsGrid" ColumnDefinitions="*,*" Margin="0,0,0,4">
-                    <Button x:Name="TabCredentialsButton" Content="Identifiants" HorizontalAlignment="Stretch" Margin="0,0,4,0"
-                            Style="{StaticResource AccentButtonStyle}" Click="OnTabCredentialsClicked" />
-                    <Button x:Name="TabTokenButton" Content="Jeton (Token)" Grid.Column="1" HorizontalAlignment="Stretch" Margin="4,0,0,0"
+                <Grid x:Name="LoginTabsGrid" ColumnDefinitions="*,*,*" Margin="0,0,0,4">
+                    <Button x:Name="TabQrButton" Content="QR-код" HorizontalAlignment="Stretch" Margin="0,0,3,0"
+                            Style="{StaticResource AccentButtonStyle}" Click="OnTabQrClicked" />
+                    <Button x:Name="TabCredentialsButton" Content="Identifiants" Grid.Column="1" HorizontalAlignment="Stretch" Margin="3,0,3,0"
+                            Click="OnTabCredentialsClicked" />
+                    <Button x:Name="TabTokenButton" Content="Jeton (Token)" Grid.Column="2" HorizontalAlignment="Stretch" Margin="3,0,0,0"
                             Click="OnTabTokenClicked" />
                 </Grid>
 
+                <!-- Mode 0 : Connexion directe par QR Code (recommandé et par défaut) -->
+                <StackPanel x:Name="QrPanel" Spacing="12">
+                    <TextBlock Text="Scannez avec l'application mobile Discord"
+                               FontSize="13" FontWeight="SemiBold"
+                               HorizontalAlignment="Center" TextAlignment="Center" />
+
+                    <!-- Carte QR Code avec coins arrondis et bordure -->
+                    <Border Background="White" CornerRadius="12" Padding="12"
+                            HorizontalAlignment="Center"
+                            BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}" BorderThickness="1">
+                        <Grid Width="220" Height="220">
+                            <ProgressRing x:Name="QrLoadingRing" IsActive="True"
+                                          Width="40" Height="40" HorizontalAlignment="Center" VerticalAlignment="Center" />
+                            <Image x:Name="QrCodeImage" Width="220" Height="220" Visibility="Collapsed" />
+                        </Grid>
+                    </Border>
+
+                    <TextBlock x:Name="QrStatusText"
+                               Text="Génération du code QR..."
+                               FontSize="12" Opacity="0.85" TextAlignment="Center" TextWrapping="Wrap" />
+
+                    <Border Background="{ThemeResource CardBackgroundFillColorSecondaryBrush}"
+                            CornerRadius="8" Padding="12" Margin="0,2,0,0">
+                        <StackPanel Spacing="4">
+                            <TextBlock Text="1. Ouvrez l'application Discord sur votre téléphone" FontSize="11" Opacity="0.8" TextWrapping="Wrap" />
+                            <TextBlock Text="2. Allez dans Paramètres > Scanner le code QR" FontSize="11" Opacity="0.8" TextWrapping="Wrap" />
+                            <TextBlock Text="3. Scannez ce code et appuyez sur « Se connecter »" FontSize="11" Opacity="0.8" TextWrapping="Wrap" />
+                        </StackPanel>
+                    </Border>
+
+                    <Button x:Name="RefreshQrButton" Content="🔄 Actualiser le code QR" HorizontalAlignment="Stretch"
+                            Click="OnRefreshQrClicked" />
+
+                    <Button x:Name="OpenWebViewButton" Content="🌐 Connexion via fenêtre Web (WebView2)" HorizontalAlignment="Stretch"
+                            Click="OnOpenWebViewClicked" />
+                </StackPanel>
+
                 <!-- Mode 1 : Email / Mot de passe -->
-                <StackPanel x:Name="CredentialsPanel" Spacing="12">
+                <StackPanel x:Name="CredentialsPanel" Spacing="12" Visibility="Collapsed">
                     <TextBox x:Name="EmailBox" PlaceholderText="E-mail ou numéro de téléphone"
                              Header="Adresse e-mail" />
                     <PasswordBox x:Name="PasswordBox" PlaceholderText="Mot de passe"
@@ -41,7 +80,7 @@
                 <StackPanel x:Name="TokenPanel" Spacing="12" Visibility="Collapsed">
                     <TextBox x:Name="TokenBox" PlaceholderText="Collez votre jeton utilisateur Discord"
                              Header="Jeton de compte (User Token)" />
-                    <TextBlock Text="Idéal si le 2FA ou le captcha bloque : ouvrez Discord Web > F12 (DevTools) > Console > tapez : window.webpackChunkdiscord_app.push([[Math.random()],{},e=>{for(const m of Object.values(e.c))if(m?.exports?.default?.getToken){console.log(m.exports.default.getToken())}}]) ou copiez depuis localStorage.token"
+                    <TextBlock Text="Idéal si le 2FA ou le captcha bloque : copiez depuis Discord Web > F12 (DevTools) > Console > localStorage.token ou depuis Dorion."
                                FontSize="11" Opacity="0.7" TextWrapping="Wrap" />
                     <Button x:Name="TokenLoginButton" Content="Se connecter avec le jeton" HorizontalAlignment="Stretch"
                             Style="{StaticResource AccentButtonStyle}" Click="OnTokenLoginClicked" />
@@ -54,7 +93,6 @@
                                Text="Entrez le code fourni par votre application ou par SMS."
                                Opacity="0.8" FontSize="12" TextWrapping="Wrap" />
 
-                    <!-- Choix de méthode si plusieurs sont détectées -->
                     <ComboBox x:Name="MfaMethodCombo" Header="Méthode de validation" HorizontalAlignment="Stretch"
                               SelectionChanged="OnMfaMethodChanged">
                         <ComboBoxItem Content="Application d'authentification (TOTP)" Tag="totp" IsSelected="True" />
@@ -62,7 +100,6 @@
                         <ComboBoxItem x:Name="MfaBackupComboItem" Content="Code de secours (Backup)" Tag="backup" />
                     </ComboBox>
 
-                    <!-- Bouton pour demander l'envoi du SMS si la méthode SMS est choisie -->
                     <Button x:Name="SendSmsButton" Content="Envoyer un code par SMS" HorizontalAlignment="Stretch"
                             Visibility="Collapsed" Click="OnSendSmsClicked" />
 
@@ -86,5 +123,23 @@
                            FontSize="11" Opacity="0.6" TextWrapping="Wrap" TextAlignment="Center" Margin="0,8,0,0" />
             </StackPanel>
         </ScrollViewer>
+
+        <!-- Overlay WebView2 si l'utilisateur souhaite se connecter via navigateur interne -->
+        <Grid x:Name="WebViewOverlay" Grid.RowSpan="2" Visibility="Collapsed"
+              Background="{ThemeResource ApplicationPageBackgroundThemeBrush}">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="44" />
+                <RowDefinition Height="*" />
+            </Grid.RowDefinitions>
+
+            <Grid Grid.Row="0" Background="{ThemeResource CardBackgroundFillColorDefaultBrush}" Padding="12,0">
+                <Button Content="← Revenir à l'application" HorizontalAlignment="Left"
+                        VerticalAlignment="Center" Click="OnCloseWebViewClicked" />
+                <TextBlock Text="Connexion Discord Web (WebView2)" FontWeight="SemiBold"
+                           HorizontalAlignment="Center" VerticalAlignment="Center" />
+            </Grid>
+
+            <WebView2 x:Name="LoginWebView" Grid.Row="1" />
+        </Grid>
     </Grid>
 </Window>

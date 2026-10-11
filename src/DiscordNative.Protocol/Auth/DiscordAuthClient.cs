@@ -176,7 +176,6 @@ public sealed class DiscordAuthClient : IDisposable
 
         using var request = new HttpRequestMessage(HttpMethod.Get, $"{ApiBase}/users/@me");
         request.Headers.TryAddWithoutValidation("Authorization", token);
-        request.Headers.TryAddWithoutValidation("Origin", "https://discord.com");
 
         var response = await _http.SendAsync(request, ct);
         if (!response.IsSuccessStatusCode)
@@ -191,6 +190,8 @@ public sealed class DiscordAuthClient : IDisposable
             ? $"@{username}"
             : $"{username}#{discriminator}";
     }
+
+    public DiscordRemoteAuthClient CreateRemoteAuthClient() => new(_http);
 
     public void Dispose() => _http.Dispose();
 

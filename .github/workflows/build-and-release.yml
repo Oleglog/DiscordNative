@@ -4,9 +4,9 @@ on:
   workflow_dispatch:
     inputs:
       version:
-        description: 'Release version tag (e.g. v0.2.5)'
+        description: 'Release version tag (e.g. v0.2.6)'
         required: false
-        default: 'v0.2.5'
+        default: 'v0.2.6'
   push:
     tags:
       - 'v*'
@@ -46,7 +46,7 @@ jobs:
             if ("${{ github.ref }}" -like "refs/tags/*") {
               $ver = "${{ github.ref_name }}"
             } else {
-              $ver = "v0.2.5"
+              $ver = "v0.2.6"
             }
           }
           Write-Host "Packaging version: $ver"
@@ -70,7 +70,7 @@ jobs:
             ## Diswin ${{ env.VERSION }} Release
 
             ### 🚀 Updates:
-            - **🔑 Token Quick-Switch Button**: Added a direct button inside the 2FA panel to immediately switch to Token login if Discord's anti-bot system blocks 2FA.
-            - **🛡️ Two-Way Fallback**: Added automatic fallback between TOTP (6-digit) and Backup (8-character) code endpoints.
-            - **⚡ Fix ASCII Header**: Local timezone header converted to ASCII IANA or UTC.
-            - **🧹 Clean Serialization**: No null values sent to Discord API.
+            - **📲 Connexion instantanée par QR-Code (Discord Remote Auth)**: Вход по официальному QR-коду Discord прямо в приложении! Просто откройте Discord на телефоне (Настройки > Сканировать QR-код) и подтвердите вход. Никаких проблем с 2FA или капчей.
+            - **🌐 Вход через встроенное Web-окно (WebView2)**: Кнопка «Connexion via fenêtre Web» для авторизации через полноценный браузерный контекст Edge WebView2 с автоматическим перехватом токена.
+            - **🔑 Исправление валидации токенов (Token Login)**: Устранён дублирующийся заголовок Origin, приводивший к ошибке Cloudflare 1010.
+            - **🛡️ Сохранена поддержка пароля, TOTP, SMS и резервных кодов**.

@@ -1,12 +1,17 @@
 using DiscordNative.Protocol.Auth;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
+using Microsoft.UI.Xaml.Media.Imaging;
+using QRCoder;
+using Windows.Storage.Streams;
 
 namespace DiscordNative.App.Views;
 
 public sealed partial class LoginWindow : Window
 {
     private readonly DiscordAuthClient _authClient = new();
+    private readonly DiscordRemoteAuthClient _remoteAuthClient;
+    private DispatcherTimer? _webViewTimer;
     private string? _pendingMfaTicket;
     private string? _pendingLoginInstanceId;
 
@@ -17,6 +22,21 @@ public sealed partial class LoginWindow : Window
         ExtendsContentIntoTitleBar = true;
         SetTitleBar(AppTitleBar);
         SetWindowIcon();
+
+        _remoteAuthClient = _authClient.CreateRemoteAuthClient();
+        _remoteAuthClient.QrCodeReady += OnQrCodeReady;
+        _remoteAuthClient.UserScanned += OnUserScanned;
+        _remoteAuthClient.Authenticated += OnRemoteAuthenticated;
+        _remoteAuthClient.Cancelled += OnRemoteCancelled;
+        _remoteAuthClient.ErrorOccurred += OnRemoteError;
+
+        Closed += (s, e) =>
+        {
+            _remoteAuthClient.Dispose();
+            _webViewTimer?.Stop();
+        };
+
+        StartQrFlow();
     }
 
     private void SetWindowIcon()
@@ -35,23 +55,221 @@ public sealed partial class LoginWindow : Window
         catch { }
     }
 
+    #region Tabs Navigation
+
+    private void OnTabQrClicked(object sender, RoutedEventArgs e)
+    {
+        QrPanel.Visibility = Visibility.Visible;
+        CredentialsPanel.Visibility = Visibility.Collapsed;
+        TokenPanel.Visibility = Visibility.Collapsed;
+
+        TabQrButton.Style = (Style)Application.Current.Resources["AccentButtonStyle"];
+        TabCredentialsButton.Style = null;
+        TabTokenButton.Style = null;
+        ErrorBar.IsOpen = false;
+
+        StartQrFlow();
+    }
+
     private void OnTabCredentialsClicked(object sender, RoutedEventArgs e)
     {
+        _remoteAuthClient.Stop();
+        QrPanel.Visibility = Visibility.Collapsed;
         CredentialsPanel.Visibility = Visibility.Visible;
         TokenPanel.Visibility = Visibility.Collapsed;
+
         TabCredentialsButton.Style = (Style)Application.Current.Resources["AccentButtonStyle"];
+        TabQrButton.Style = null;
         TabTokenButton.Style = null;
         ErrorBar.IsOpen = false;
     }
 
     private void OnTabTokenClicked(object sender, RoutedEventArgs e)
     {
+        _remoteAuthClient.Stop();
+        QrPanel.Visibility = Visibility.Collapsed;
         CredentialsPanel.Visibility = Visibility.Collapsed;
         TokenPanel.Visibility = Visibility.Visible;
+
         TabTokenButton.Style = (Style)Application.Current.Resources["AccentButtonStyle"];
+        TabQrButton.Style = null;
         TabCredentialsButton.Style = null;
         ErrorBar.IsOpen = false;
     }
+
+    #endregion
+
+    #region QR Code Flow
+
+    private async void StartQrFlow()
+    {
+        QrLoadingRing.IsActive = true;
+        QrCodeImage.Visibility = Visibility.Collapsed;
+        QrStatusText.Text = "Connexion aux serveurs Discord et génération du QR code...";
+        ErrorBar.IsOpen = false;
+
+        try
+        {
+            await _remoteAuthClient.StartAsync();
+        }
+        catch (Exception ex)
+        {
+            QrLoadingRing.IsActive = false;
+            QrStatusText.Text = "Échec de génération du QR code. Cliquez sur Actualiser.";
+            ShowError($"Erreur QR : {ex.Message}");
+        }
+    }
+
+    private void OnQrCodeReady(object? sender, string qrUrl)
+    {
+        DispatcherQueue.TryEnqueue(async () =>
+        {
+            try
+            {
+                using var qrGenerator = new QRCodeGenerator();
+                using var qrCodeData = qrGenerator.CreateQrCode(qrUrl, QRCodeGenerator.ECCLevel.M);
+                var qrCode = new PngByteQRCode(qrCodeData);
+                byte[] qrBytes = qrCode.GetGraphic(8);
+
+                var bitmap = new BitmapImage();
+                using var stream = new InMemoryRandomAccessStream();
+                using (var writer = new DataWriter(stream.GetOutputStreamAt(0)))
+                {
+                    writer.WriteBytes(qrBytes);
+                    await writer.StoreAsync();
+                }
+                await bitmap.SetSourceAsync(stream);
+
+                QrCodeImage.Source = bitmap;
+                QrCodeImage.Visibility = Visibility.Visible;
+                QrLoadingRing.IsActive = false;
+                QrStatusText.Text = "Prêt ! Scannez ce code avec l'application mobile Discord.";
+            }
+            catch (Exception ex)
+            {
+                QrLoadingRing.IsActive = false;
+                QrStatusText.Text = "Erreur de rendu du QR code.";
+                ShowError($"Erreur d'affichage du QR code : {ex.Message}");
+            }
+        });
+    }
+
+    private void OnUserScanned(object? sender, RemoteAuthUser user)
+    {
+        DispatcherQueue.TryEnqueue(() =>
+        {
+            QrStatusText.Text = $"✓ Scanné par {user.DisplayTag} ! Confirmez la connexion sur votre smartphone...";
+        });
+    }
+
+    private void OnRemoteAuthenticated(object? sender, string token)
+    {
+        DispatcherQueue.TryEnqueue(() =>
+        {
+            OnAuthenticated(token);
+        });
+    }
+
+    private void OnRemoteCancelled(object? sender, EventArgs e)
+    {
+        DispatcherQueue.TryEnqueue(() =>
+        {
+            QrLoadingRing.IsActive = false;
+            QrStatusText.Text = "Session QR expirée ou refusée. Cliquez sur Actualiser pour réessayer.";
+        });
+    }
+
+    private void OnRemoteError(object? sender, string error)
+    {
+        DispatcherQueue.TryEnqueue(() =>
+        {
+            QrLoadingRing.IsActive = false;
+            QrStatusText.Text = "Une erreur est survenue lors de la session QR.";
+            ShowError(error);
+        });
+    }
+
+    private void OnRefreshQrClicked(object sender, RoutedEventArgs e)
+    {
+        StartQrFlow();
+    }
+
+    #endregion
+
+    #region WebView2 Flow
+
+    private async void OnOpenWebViewClicked(object sender, RoutedEventArgs e)
+    {
+        _remoteAuthClient.Stop();
+        WebViewOverlay.Visibility = Visibility.Visible;
+
+        try
+        {
+            await LoginWebView.EnsureCoreWebView2Async();
+            LoginWebView.CoreWebView2.Navigate("https://discord.com/login");
+            StartWebViewTokenPolling();
+        }
+        catch (Exception ex)
+        {
+            WebViewOverlay.Visibility = Visibility.Collapsed;
+            ShowError($"Impossible d'initialiser WebView2 : {ex.Message}");
+            StartQrFlow();
+        }
+    }
+
+    private void StartWebViewTokenPolling()
+    {
+        _webViewTimer?.Stop();
+        _webViewTimer = new DispatcherTimer
+        {
+            Interval = TimeSpan.FromSeconds(1.5)
+        };
+        _webViewTimer.Tick += async (s, args) =>
+        {
+            if (LoginWebView.CoreWebView2 == null) return;
+            try
+            {
+                var raw = await LoginWebView.ExecuteScriptAsync(
+                    @"(function() {
+                        try {
+                            let t = window.localStorage.getItem('token');
+                            if (t) return t;
+                            let m = [];
+                            window.webpackChunkdiscord_app.push([['gt'],{},e=>{for(let c in e.c)m.push(e.c[c])}]);
+                            let mod = m.find(x => x?.exports?.default?.getToken !== void 0);
+                            return mod ? mod.exports.default.getToken() : null;
+                        } catch(e) {
+                            return null;
+                        }
+                    })()"
+                );
+
+                if (!string.IsNullOrWhiteSpace(raw) && raw != "null" && raw != "\"null\"")
+                {
+                    var token = raw.Trim().Trim('"').Trim('\'');
+                    if (!string.IsNullOrWhiteSpace(token))
+                    {
+                        _webViewTimer?.Stop();
+                        WebViewOverlay.Visibility = Visibility.Collapsed;
+                        OnAuthenticated(token);
+                    }
+                }
+            }
+            catch { }
+        };
+        _webViewTimer.Start();
+    }
+
+    private void OnCloseWebViewClicked(object sender, RoutedEventArgs e)
+    {
+        _webViewTimer?.Stop();
+        WebViewOverlay.Visibility = Visibility.Collapsed;
+        StartQrFlow();
+    }
+
+    #endregion
+
+    #region Credentials & 2FA Flow
 
     private async void OnLoginClicked(object sender, RoutedEventArgs e)
     {
@@ -79,6 +297,7 @@ public sealed partial class LoginWindow : Window
                 LoginTabsGrid.Visibility = Visibility.Collapsed;
                 CredentialsPanel.Visibility = Visibility.Collapsed;
                 TokenPanel.Visibility = Visibility.Collapsed;
+                QrPanel.Visibility = Visibility.Collapsed;
                 MfaPanel.Visibility = Visibility.Visible;
             }
             else
@@ -112,7 +331,7 @@ public sealed partial class LoginWindow : Window
         }
         else if (result.HasWebAuthn && !result.HasTotp && !result.HasSms)
         {
-            MfaDescriptionText.Text = "Votre compte utilise une clé de sécurité WebAuthn (YubiKey/Passkey). Utilisez un code de secours ou connectez-vous par Jeton.";
+            MfaDescriptionText.Text = "Votre compte utilise une clé WebAuthn (YubiKey/Passkey). Utilisez le QR code, un code de secours ou un Jeton.";
             MfaMethodCombo.SelectedItem = MfaBackupComboItem;
         }
         else
@@ -232,6 +451,10 @@ public sealed partial class LoginWindow : Window
         OnTabTokenClicked(sender, e);
     }
 
+    #endregion
+
+    #region Direct Token Flow
+
     private async void OnTokenLoginClicked(object sender, RoutedEventArgs e)
     {
         ErrorBar.IsOpen = false;
@@ -263,8 +486,13 @@ public sealed partial class LoginWindow : Window
         }
     }
 
+    #endregion
+
     private void OnAuthenticated(string token)
     {
+        _remoteAuthClient.Dispose();
+        _webViewTimer?.Stop();
+
         App.Settings.SaveToken(token);
 
         var mainWindow = new MainWindow(token);
